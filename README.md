@@ -6,7 +6,7 @@ A simple Model Context Protocol server for KubeVirt.
 
 The following tools are currently provided:
 
-### list_vm_names
+### list_vms
 
 ### start_vm
 

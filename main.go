@@ -31,7 +31,7 @@ func main() {
 	// change instance type
 	s.AddTool(
 		mcp.NewTool(
-			"list_vm_names",
+			"list_vms",
 			mcp.WithDescription("list the names of virtual machine within a given namespace"),
 			mcp.WithString(
 				"namespace",
