@@ -124,6 +124,246 @@ The project includes comprehensive test coverage:
     - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
     - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
+## Using with Claude CLI
+
+This MCP server integrates seamlessly with the Claude CLI (Claude Code) to provide KubeVirt management capabilities directly within your development workflow.
+
+### Configuration
+
+#### Method 1: Project-Specific Configuration
+
+Create a `.clauderc` file in your project directory:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "kubevirt": {
+        "command": "/path/to/kubevirt-mcp-server",
+        "env": {
+          "KUBECONFIG": "/path/to/your/kubeconfig"
+        }
+      }
+    }
+  }
+}
+```
+
+#### Method 2: Global Configuration
+
+Configure in your global Claude settings:
+
+```bash
+# Create/edit global Claude config
+mkdir -p ~/.config/claude
+cat > ~/.config/claude/config.json << 'EOF'
+{
+  "mcp": {
+    "servers": {
+      "kubevirt": {
+        "command": "/path/to/kubevirt-mcp-server",
+        "env": {
+          "KUBECONFIG": "/path/to/your/kubeconfig"
+        }
+      }
+    }
+  }
+}
+EOF
+```
+
+#### Method 3: Environment Variables
+
+Set up environment variables for dynamic configuration:
+
+```bash
+export KUBEVIRT_MCP_SERVER="/path/to/kubevirt-mcp-server"
+export KUBECONFIG="/path/to/your/kubeconfig"
+
+# Use in Claude config
+{
+  "mcp": {
+    "servers": {
+      "kubevirt": {
+        "command": "$KUBEVIRT_MCP_SERVER",
+        "env": {
+          "KUBECONFIG": "$KUBECONFIG"
+        }
+      }
+    }
+  }
+}
+```
+
+### Setup Steps
+
+1. **Build the MCP Server**
+   ```bash
+   git clone <your-repo>
+   cd kubevirt-mcp-server
+   make build
+   
+   # Note the path to the binary
+   echo "Binary location: $(pwd)/kubevirt-mcp-server"
+   ```
+
+2. **Verify KubeVirt Access**
+   ```bash
+   # Test your kubeconfig works
+   kubectl get vms --all-namespaces
+   
+   # Test the MCP server directly
+   export KUBECONFIG=/path/to/your/kubeconfig
+   echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | ./kubevirt-mcp-server
+   ```
+
+3. **Configure Claude CLI**
+   
+   Use one of the configuration methods above, ensuring:
+   - The `command` path points to your built binary
+   - The `KUBECONFIG` environment variable points to your cluster config
+   - The kubeconfig has appropriate permissions for VM operations
+
+4. **Test the Integration**
+   ```bash
+   # Start Claude CLI and test MCP server connectivity
+   claude --list-mcp-servers
+   
+   # Should show "kubevirt" server as available
+   ```
+
+### Usage Examples
+
+Once configured, you can use Claude CLI with natural language to manage your VMs:
+
+#### VM Management
+```bash
+# List and manage VMs
+claude "List all VMs in the production namespace"
+claude "Start the web-server VM in default namespace"
+claude "Restart all stopped VMs in the staging namespace"
+claude "Show me the configuration of the database VM"
+```
+
+#### Troubleshooting
+```bash
+# VM diagnostics
+claude "The payment-service VM isn't responding, can you investigate?"
+claude "Compare the instance types of VMs in prod vs staging"
+claude "What VMs are currently running and what resources are they using?"
+```
+
+#### Bulk Operations
+```bash
+# Mass management
+claude "Stop all VMs in the test namespace"
+claude "List all VMs that don't have instance types assigned"
+claude "Show me a summary of VM status across all namespaces"
+```
+
+#### Development Workflow
+```bash
+# Development tasks
+claude "Start my development VMs (web-dev, db-dev, cache-dev)"
+claude "Check if my feature branch VMs are ready for testing"
+claude "Clean up any VMs from old feature branches"
+```
+
+### Available Capabilities
+
+The MCP server provides Claude with these tools:
+
+**VM Lifecycle:**
+- `list_vms` - List VMs in a namespace
+- `start_vm` - Start a specific VM
+- `stop_vm` - Stop a specific VM
+- `restart_vm` - Restart a VM
+
+**Instance Types:**
+- `list_instancetypes` - List available instance types
+- `get_vm_instancetype` - Get VM's assigned instance type
+
+**Structured Data:**
+- `kubevirt://{namespace}/vms` - VM summary data
+- `kubevirt://{namespace}/vm/{name}` - Complete VM specs
+- `kubevirt://{namespace}/vmis` - VM instance runtime data
+- `kubevirt://{namespace}/vmi/{name}` - Complete VMI specs
+
+### Security Considerations
+
+- **Permissions**: The MCP server uses your KUBECONFIG credentials
+- **Scope**: Claude has the same KubeVirt permissions as your kubeconfig
+- **Best Practice**: Consider using a dedicated service account with limited permissions:
+
+```bash
+# Create a dedicated service account for MCP operations
+kubectl create serviceaccount kubevirt-mcp-user
+kubectl create clusterrole kubevirt-mcp-role \
+  --verb=get,list,create,update,patch,delete \
+  --resource=virtualmachines,virtualmachineinstances
+kubectl create clusterrolebinding kubevirt-mcp-binding \
+  --clusterrole=kubevirt-mcp-role \
+  --serviceaccount=default:kubevirt-mcp-user
+
+# Generate kubeconfig for the service account
+kubectl create token kubevirt-mcp-user > /path/to/mcp-kubeconfig
+```
+
+### Troubleshooting
+
+**Connection Issues:**
+```bash
+# Test MCP server manually
+export KUBECONFIG=/path/to/your/kubeconfig
+echo '{"jsonrpc":"2.0","method":"initialize","params":{"capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}' | ./kubevirt-mcp-server
+```
+
+**Permission Issues:**
+```bash
+# Verify kubeconfig access
+kubectl auth can-i get virtualmachines
+kubectl auth can-i create virtualmachines
+```
+
+**Claude CLI Debug:**
+```bash
+# Enable verbose logging
+claude --verbose "List my VMs"
+
+# Check MCP server logs
+CLAUDE_MCP_DEBUG=1 claude "List VMs in default namespace"
+```
+
+### Advanced Usage
+
+**Project-Specific VM Management:**
+```bash
+# Create a .clauderc for your project
+cat > .clauderc << 'EOF'
+{
+  "mcp": {
+    "servers": {
+      "kubevirt": {
+        "command": "/usr/local/bin/kubevirt-mcp-server",
+        "env": {
+          "KUBECONFIG": "./k8s/kubeconfig",
+          "DEFAULT_NAMESPACE": "myproject-dev"
+        }
+      }
+    }
+  },
+  "context": {
+    "project": "MyProject Development VMs",
+    "defaultNamespace": "myproject-dev"
+  }
+}
+EOF
+
+# Now Claude understands your project context
+claude "Start my development environment"
+claude "Show me the status of project VMs"
+```
+
 ## Demo
 
 This short demo uses mcp-cli as a bridge between the kubevirt-mcp-server and LLM.

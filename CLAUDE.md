@@ -197,6 +197,35 @@ When making ANY changes to the project (code, structure, features, tools, resour
 
 This ensures documentation stays current and accurate for both developers and users.
 
+## Claude CLI Integration
+
+### Configuration
+
+The MCP server can be configured with Claude CLI in several ways:
+
+1. **Project-specific** - `.clauderc` file in project directory
+2. **Global** - `~/.config/claude/config.json` 
+3. **Environment variables** - Dynamic configuration
+
+### Usage Patterns
+
+The server enables these workflow patterns with Claude CLI:
+
+- **VM lifecycle management** - Start/stop/restart VMs with natural language
+- **Development environment control** - Manage dev/staging VM environments  
+- **Troubleshooting assistance** - Investigate VM issues with Claude's help
+- **Bulk operations** - Mass VM management across namespaces
+- **Resource analysis** - Review VM configurations and instance types
+
+### Security Model
+
+- Uses KUBECONFIG credentials for KubeVirt API access
+- Inherits permissions from the configured kubeconfig
+- Supports dedicated service accounts for restricted access
+- No cluster admin privileges required - only VM operations
+
+This integration enables natural language VM management workflows while maintaining security through standard Kubernetes RBAC.
+
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
