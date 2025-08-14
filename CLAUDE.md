@@ -9,6 +9,7 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 - `pkg/tools/` - MCP tool handlers for VM operations
 - `pkg/resources/` - MCP resource handlers for structured data access
 - `scripts/kubevirtci.sh` - Script for managing local kubevirtci development environment
+- `scripts/sync.sh` - Script for building and running MCP server locally with kubevirtci access
 - `Makefile` - Build automation and development tasks
 - `server_config.json` - MCP server configuration for client integration
 - `go.mod` / `go.sum` - Go module dependencies
@@ -53,17 +54,22 @@ go build -o kubevirt-mcp-server .
 - `make check` - Run fmt, vet, lint, and test
 - `make cluster-up` - Start kubevirtci cluster for testing
 - `make cluster-down` - Stop kubevirtci cluster
+- `make cluster-sync` - Build and run MCP server locally with kubevirtci access
+- `make test-functional` - Run functional tests against MCP server
 - `make help` - Show help message
 
 ### Testing
 The project uses the Ginkgo testing framework with Gomega assertions:
 
 ```bash
-# Run all tests (with verbose output)
+# Run unit tests (with verbose output)
 make test
 
 # Generate coverage report
 make coverage
+
+# Run functional tests against MCP server
+make test-functional
 ```
 
 ### Code Quality
@@ -87,18 +93,32 @@ make cluster-up
 
 # Stop the cluster when done
 make cluster-down
+
+# Build and run MCP server locally with cluster access
+make cluster-sync
 ```
 
-The `scripts/kubevirtci.sh` script handles:
+The kubevirtci integration includes:
+
+**`scripts/kubevirtci.sh`** handles:
 - Downloading and setting up kubevirtci
 - Starting a local Kubernetes cluster with KubeVirt and CDI
 - Configuring the environment for testing
 - Providing access to kubectl, kubeconfig, and registry
 
+**`scripts/sync.sh`** handles:
+- Building the MCP server binary
+- Starting the MCP server locally with proper KUBECONFIG environment
+- Process management (start/stop with PID tracking)
+- Logging to /tmp/kubevirt-mcp-server.log for debugging
+
 #### Test Structure
 - `pkg/client/client_test.go` - Tests for KubeVirt client creation
 - `pkg/tools/tools_test.go` - Tests for MCP tool handlers (argument validation)
 - `pkg/resources/resources_test.go` - Tests for MCP resource handlers (URI parsing)
+- `tests/functional/` - Functional tests for MCP server stdio communication
+  - `functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
+  - `mcp_server_stdio_test.go` - Tests for MCP server JSON-RPC communication over stdio
 
 ## Git Commit Guidelines
 

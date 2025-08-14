@@ -11,6 +11,7 @@ The project is organized into modular packages:
 - `pkg/tools/` - MCP tool handlers for VM operations
 - `pkg/resources/` - MCP resource handlers for structured data access
 - `scripts/kubevirtci.sh` - Script for managing local kubevirtci development environment
+- `scripts/sync.sh` - Script for building and running MCP server locally with kubevirtci access
 - `Makefile` - Build automation and development tasks
 
 ## Features
@@ -53,6 +54,8 @@ go build -o kubevirt-mcp-server .
 - `make check` - Run fmt, vet, lint, and test
 - `make cluster-up` - Start kubevirtci cluster for testing
 - `make cluster-down` - Stop kubevirtci cluster
+- `make cluster-sync` - Build and run MCP server locally with kubevirtci access
+- `make test-functional` - Run functional tests against MCP server
 - `make help` - Show help message
 
 ### Testing
@@ -60,11 +63,14 @@ go build -o kubevirt-mcp-server .
 The project uses the [Ginkgo](https://github.com/onsi/ginkgo) testing framework with [Gomega](https://github.com/onsi/gomega) assertions:
 
 ```bash
-# Run all tests
+# Run unit tests
 make test
 
 # Generate test coverage report
 make coverage
+
+# Run functional tests against MCP server
+make test-functional
 
 # Run linter
 make lint
@@ -83,13 +89,24 @@ make cluster-up
 
 # Stop the cluster when done
 make cluster-down
+
+# Build and run MCP server locally with cluster access
+make cluster-sync
 ```
 
-The `scripts/kubevirtci.sh` script handles:
+The kubevirtci integration includes:
+
+**`scripts/kubevirtci.sh`** handles:
 - Downloading and setting up kubevirtci
 - Starting a local Kubernetes cluster with KubeVirt and CDI
 - Configuring the environment for testing
 - Providing access to kubectl, kubeconfig, and registry
+
+**`scripts/sync.sh`** handles:
+- Building the MCP server binary
+- Starting the MCP server locally with proper KUBECONFIG environment
+- Process management (start/stop with PID tracking)
+- Logging to /tmp/kubevirt-mcp-server.log for debugging
 
 ## Demo
 

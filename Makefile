@@ -6,7 +6,7 @@ GO_FILES := $(shell find . -type f -name '*.go')
 IMAGE_NAME := kubevirt-mcp-server
 IMAGE_TAG := latest
 
-.PHONY: build clean test fmt vet deps help image cluster-up cluster-down
+.PHONY: build clean test fmt vet deps help image cluster-up cluster-down cluster-sync test-functional
 
 # Default target
 all: build
@@ -86,6 +86,18 @@ cluster-down:
 	./scripts/kubevirtci.sh down
 	@echo "Cluster stopped!"
 
+# Build and run MCP server locally with kubevirtci access
+cluster-sync:
+	@echo "Building and starting MCP server locally..."
+	./scripts/sync.sh
+	@echo "MCP server started successfully!"
+
+# Run functional tests against MCP server
+test-functional: build
+	@echo "Running functional tests..."
+	ginkgo run --randomize-all --randomize-suites --fail-on-pending --trace -v tests/functional
+	@echo "Functional tests complete!"
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -102,4 +114,6 @@ help:
 	@echo "  image     - Build container image"
 	@echo "  cluster-up   - Start kubevirtci cluster for testing"
 	@echo "  cluster-down - Stop kubevirtci cluster"
+	@echo "  cluster-sync - Build and run MCP server locally with kubevirtci access"
+	@echo "  test-functional - Run functional tests against MCP server"
 	@echo "  help      - Show this help message"
