@@ -45,9 +45,10 @@ go build -o kubevirt-mcp-server .
 - `make coverage` - Generate test coverage report
 - `make fmt` - Format Go code
 - `make vet` - Run go vet
+- `make lint` - Run golangci-lint
 - `make deps` - Download and tidy dependencies
 - `make run` - Build and run the server
-- `make check` - Run fmt, vet, and test
+- `make check` - Run fmt, vet, lint, and test
 - `make help` - Show help message
 
 ### Testing
@@ -59,6 +60,17 @@ make test
 
 # Generate coverage report
 make coverage
+```
+
+### Code Quality
+The project uses golangci-lint for comprehensive code analysis:
+
+```bash
+# Run linter
+make lint
+
+# Run all quality checks (fmt + vet + lint + test)
+make check
 ```
 
 #### Test Structure

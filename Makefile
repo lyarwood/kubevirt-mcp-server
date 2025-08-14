@@ -46,6 +46,11 @@ vet:
 	@echo "Running go vet..."
 	go vet ./...
 
+# Run linter
+lint:
+	@echo "Running golangci-lint..."
+	golangci-lint run
+
 # Download dependencies
 deps:
 	@echo "Downloading dependencies..."
@@ -58,7 +63,7 @@ run: build
 	./$(BINARY_NAME)
 
 # Run all quality checks
-check: fmt vet test
+check: fmt vet lint test
 	@echo "Code quality checks complete!"
 
 # Show help
@@ -70,7 +75,8 @@ help:
 	@echo "  coverage  - Generate test coverage report"
 	@echo "  fmt       - Format Go code"
 	@echo "  vet       - Run go vet"
+	@echo "  lint      - Run golangci-lint"
 	@echo "  deps      - Download and tidy dependencies"
 	@echo "  run       - Build and run the server"
-	@echo "  check     - Run fmt, vet, and test"
+	@echo "  check     - Run fmt, vet, lint, and test"
 	@echo "  help      - Show this help message"

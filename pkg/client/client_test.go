@@ -27,7 +27,7 @@ var _ = Describe("Client", func() {
 			It("should use default client configuration", func() {
 				// Test that the function doesn't panic and handles errors gracefully
 				Expect(func() {
-					client.GetKubevirtClient()
+					_, _ = client.GetKubevirtClient()
 				}).NotTo(Panic())
 			})
 		})
