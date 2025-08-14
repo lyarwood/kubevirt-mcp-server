@@ -114,7 +114,7 @@ func main() {
 	s.AddTool(
 		mcp.NewTool(
 			"create_vm",
-			mcp.WithDescription("create a virtual machine with the given name, container disk image, and optional instancetype and preference"),
+			mcp.WithDescription("create a virtual machine with the given name, container disk image (supports OS names like 'fedora', 'ubuntu'), and optional instancetype and preference"),
 			mcp.WithString(
 				"namespace",
 				mcp.Description("The namespace for the virtual machine"),
@@ -125,7 +125,7 @@ func main() {
 				mcp.Required()),
 			mcp.WithString(
 				"container_disk",
-				mcp.Description("The container disk image to use for the VM"),
+				mcp.Description("The container disk image to use for the VM (supports OS names like 'fedora', 'ubuntu' or full URLs)"),
 				mcp.Required()),
 			mcp.WithString(
 				"instancetype",

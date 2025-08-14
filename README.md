@@ -21,7 +21,7 @@ The project is organized into modular packages:
 - `start_vm` - Start a virtual machine
 - `stop_vm` - Stop a virtual machine
 - `restart_vm` - Restart a virtual machine (handles both running and stopped VMs)
-- `create_vm` - Create a virtual machine with specified container disk, optional instancetype and preference
+- `create_vm` - Create a virtual machine with specified container disk (supports OS name lookup), optional instancetype and preference
 - `list_instancetypes` - List available instance types
 - `get_vm_instancetype` - Get instance type for a VM
 
@@ -280,11 +280,17 @@ The MCP server provides Claude with these tools:
 - `start_vm` - Start a specific VM
 - `stop_vm` - Stop a specific VM
 - `restart_vm` - Restart a VM
-- `create_vm` - Create a new VM with container disk and optional instancetype/preference
+- `create_vm` - Create a new VM with container disk (supports OS names like "fedora", "ubuntu") and optional instancetype/preference
 
 **Instance Types:**
 - `list_instancetypes` - List available instance types
 - `get_vm_instancetype` - Get VM's assigned instance type
+
+**Container Disk Lookup:**
+The `create_vm` tool supports both full container image URLs and OS name shortcuts:
+- **OS Names**: `"fedora"`, `"ubuntu"`, `"centos"`, `"debian"`, `"rhel"`, `"opensuse"`, `"alpine"`, `"cirros"`, `"windows"`, `"freebsd"`
+- **Full URLs**: `"quay.io/containerdisks/fedora:latest"`, `"my-registry/my-image:tag"`
+- **Auto-resolve**: Unknown OS names are resolved to `quay.io/containerdisks/{name}:latest`
 
 **Structured Data:**
 - `kubevirt://{namespace}/vms` - VM summary data
