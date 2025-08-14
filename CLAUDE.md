@@ -80,12 +80,48 @@ make check
 
 ## Git Commit Guidelines
 
+### Conventional Commits Standard
+
+This project follows the [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification for structured commit messages:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### Commit Types
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `perf`: A code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `build`: Changes that affect the build system or external dependencies
+- `ci`: Changes to CI configuration files and scripts
+- `chore`: Other changes that don't modify src or test files
+- `revert`: Reverts a previous commit
+
+#### Examples
+```
+feat(tools): add VM restart functionality
+fix(resources): correct URI parsing for empty namespaces
+docs: update README with new MCP resource endpoints
+test: add missing test cases for client package
+refactor(pkg): reorganize internal package structure
+```
+
+### AI Assistance Attribution
+
 When creating commits that include AI assistance, use the `Assisted-By` trailer in commit messages:
 
 ```
-Add new feature implementation
+feat(resources): add VM instance filtering
 
-Description of changes made.
+Add support for filtering VMs by status and labels in resource handlers.
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
