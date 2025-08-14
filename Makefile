@@ -26,8 +26,15 @@ clean:
 
 # Run tests
 test:
-	@echo "Running tests..."
-	go test ./...
+	@echo "Running tests with Ginkgo..."
+	ginkgo -r --randomize-all --randomize-suites --fail-on-pending --cover --trace -v
+
+# Generate test coverage report
+coverage:
+	@echo "Generating test coverage report..."
+	ginkgo -r --randomize-all --randomize-suites --fail-on-pending --cover --trace --coverprofile=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
 
 # Format Go code
 fmt:
@@ -50,19 +57,20 @@ run: build
 	@echo "Starting $(BINARY_NAME)..."
 	./$(BINARY_NAME)
 
-# Check code quality
+# Run all quality checks
 check: fmt vet test
 	@echo "Code quality checks complete!"
 
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  build    - Build the binary (default)"
-	@echo "  clean    - Clean build artifacts"
-	@echo "  test     - Run tests"
-	@echo "  fmt      - Format Go code"
-	@echo "  vet      - Run go vet"
-	@echo "  deps     - Download and tidy dependencies"
-	@echo "  run      - Build and run the server"
-	@echo "  check    - Run fmt, vet, and test"
-	@echo "  help     - Show this help message"
+	@echo "  build     - Build the binary (default)"
+	@echo "  clean     - Clean build artifacts"
+	@echo "  test      - Run tests with Ginkgo framework"
+	@echo "  coverage  - Generate test coverage report"
+	@echo "  fmt       - Format Go code"
+	@echo "  vet       - Run go vet"
+	@echo "  deps      - Download and tidy dependencies"
+	@echo "  run       - Build and run the server"
+	@echo "  check     - Run fmt, vet, and test"
+	@echo "  help      - Show this help message"

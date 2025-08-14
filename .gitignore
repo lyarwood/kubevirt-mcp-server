@@ -1,2 +1,4 @@
 server_config.json
 kubevirt-mcp-server
+coverage.out
+coverage.html

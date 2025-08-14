@@ -42,13 +42,26 @@ go build -o kubevirt-mcp-server .
 ### Available Make Targets
 - `make build` - Build the binary (default)
 - `make clean` - Clean build artifacts  
-- `make test` - Run tests
+- `make test` - Run tests with Ginkgo framework
+- `make coverage` - Generate test coverage report
 - `make fmt` - Format Go code
 - `make vet` - Run go vet
 - `make deps` - Download and tidy dependencies
 - `make run` - Build and run the server
 - `make check` - Run fmt, vet, and test
 - `make help` - Show help message
+
+### Testing
+
+The project uses the [Ginkgo](https://github.com/onsi/ginkgo) testing framework with [Gomega](https://github.com/onsi/gomega) assertions:
+
+```bash
+# Run all tests
+make test
+
+# Generate test coverage report
+make coverage
+```
 
 ## Demo
 
