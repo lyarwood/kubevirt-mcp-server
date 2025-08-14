@@ -2,19 +2,35 @@
 
 A simple Model Context Protocol server for KubeVirt.
 
-## Tools
+## Architecture
 
-The following tools are currently provided:
+The project is organized into modular packages:
 
-### list_vms
+- `main.go` - MCP server setup and registration
+- `pkg/client/` - Shared KubeVirt client utilities
+- `pkg/tools/` - MCP tool handlers for VM operations
+- `pkg/resources/` - MCP resource handlers for structured data access
 
-### start_vm
+## Features
 
-### stop_vm
+### MCP Tools
+- `list_vms` - List virtual machine names in a namespace
+- `start_vm` - Start a virtual machine
+- `stop_vm` - Stop a virtual machine
+- `list_instancetypes` - List available instance types
+- `get_vm_instancetype` - Get instance type for a VM
 
-### list_instancetypes
+### MCP Resources
+- `kubevirt://{namespace}/vms` - JSON list of VMs with summary info
+- `kubevirt://{namespace}/vm/{name}` - Complete VM specification
+- `kubevirt://{namespace}/vmis` - JSON list of VMIs with runtime info
+- `kubevirt://{namespace}/vmi/{name}` - Complete VMI specification
 
-### get_vm_instancetype
+## Building
+
+```bash
+go build -o kubevirt-mcp-server .
+```
 
 ## Demo
 

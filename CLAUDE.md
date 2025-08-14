@@ -4,7 +4,10 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 
 ## Project Structure
 
-- `main.go` - Main MCP server implementation with tools and resources
+- `main.go` - MCP server setup and registration
+- `pkg/client/` - Shared KubeVirt client utilities
+- `pkg/tools/` - MCP tool handlers for VM operations
+- `pkg/resources/` - MCP resource handlers for structured data access
 - `server_config.json` - MCP server configuration for client integration
 - `go.mod` / `go.sum` - Go module dependencies
 
