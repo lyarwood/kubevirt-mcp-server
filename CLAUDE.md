@@ -123,8 +123,6 @@ feat(resources): add VM instance filtering
 
 Add support for filtering VMs by status and labels in resource handlers.
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
 Assisted-By: Claude <noreply@anthropic.com>
 ```
 
