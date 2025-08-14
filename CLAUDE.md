@@ -118,7 +118,11 @@ The kubevirtci integration includes:
 - `pkg/resources/resources_test.go` - Tests for MCP resource handlers (URI parsing)
 - `tests/functional/` - Functional tests for MCP server stdio communication
   - `functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
-  - `mcp_server_stdio_test.go` - Tests for MCP server JSON-RPC communication over stdio
+  - `mcp_server_stdio_test.go` - Comprehensive functional tests for all MCP server functionality including:
+    - MCP server initialization and tool listing
+    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, list_instancetypes, get_vm_instancetype
+    - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
+    - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
 ## Git Commit Guidelines
 

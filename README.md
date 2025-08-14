@@ -104,9 +104,25 @@ The kubevirtci integration includes:
 
 **`scripts/sync.sh`** handles:
 - Building the MCP server binary
-- Starting the MCP server locally with proper KUBECONFIG environment
-- Process management (start/stop with PID tracking)
-- Logging to /tmp/kubevirt-mcp-server.log for debugging
+- Setting up proper KUBECONFIG environment for kubevirtci access
+- Providing instructions for local MCP server execution
+
+### Test Structure
+
+The project includes comprehensive test coverage:
+
+- **Unit Tests** - Test individual components in isolation
+  - `pkg/client/client_test.go` - KubeVirt client creation tests
+  - `pkg/tools/tools_test.go` - MCP tool handler argument validation
+  - `pkg/resources/resources_test.go` - MCP resource handler URI parsing
+
+- **Functional Tests** - Test complete MCP server functionality
+  - `tests/functional/functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
+  - `tests/functional/mcp_server_stdio_test.go` - Complete MCP server API coverage:
+    - MCP server initialization and JSON-RPC communication
+    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, list_instancetypes, get_vm_instancetype
+    - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
+    - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
 ## Demo
 

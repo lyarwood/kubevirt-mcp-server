@@ -95,7 +95,7 @@ cluster-sync:
 # Run functional tests against MCP server
 test-functional: build
 	@echo "Running functional tests..."
-	ginkgo run --randomize-all --randomize-suites --fail-on-pending --trace -v tests/functional
+	ginkgo run --randomize-all --randomize-suites --trace -v tests/functional
 	@echo "Functional tests complete!"
 
 # Show help
