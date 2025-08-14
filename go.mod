@@ -1,4 +1,4 @@
-module main
+module github.com/lyarwood/kubevirt-mcp-server
 
 go 1.24.1
 

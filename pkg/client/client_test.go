@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"main/pkg/client"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 )
 
 var _ = Describe("Client", func() {

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"main/pkg/resources"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 )
 
 var _ = Describe("Resources", func() {

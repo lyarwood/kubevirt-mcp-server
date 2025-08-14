@@ -3,7 +3,7 @@ package tools
 import (
 	"context"
 	"fmt"
-	"main/pkg/client"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

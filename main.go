@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"main/pkg/resources"
-	"main/pkg/tools"
+	
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"

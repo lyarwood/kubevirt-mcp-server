@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"main/pkg/client"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
