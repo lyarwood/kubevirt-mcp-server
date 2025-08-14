@@ -67,7 +67,10 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 	AfterEach(func() {
 		// Stop MCP server if running
 		if mcpServer != nil {
-			mcpServer.Stop()
+			err := mcpServer.Stop()
+			if err != nil {
+				GinkgoWriter.Printf("Warning: Failed to stop MCP server: %v\n", err)
+			}
 			mcpServer = nil
 		}
 
