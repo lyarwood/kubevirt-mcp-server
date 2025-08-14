@@ -10,6 +10,7 @@ The project is organized into modular packages:
 - `pkg/client/` - Shared KubeVirt client utilities
 - `pkg/tools/` - MCP tool handlers for VM operations
 - `pkg/resources/` - MCP resource handlers for structured data access
+- `Makefile` - Build automation and development tasks
 
 ## Features
 
@@ -29,8 +30,25 @@ The project is organized into modular packages:
 ## Building
 
 ```bash
+# Using Makefile (recommended)
+make build
+
+# Or directly with go
 go build -o kubevirt-mcp-server .
 ```
+
+## Development
+
+### Available Make Targets
+- `make build` - Build the binary (default)
+- `make clean` - Clean build artifacts  
+- `make test` - Run tests
+- `make fmt` - Format Go code
+- `make vet` - Run go vet
+- `make deps` - Download and tidy dependencies
+- `make run` - Build and run the server
+- `make check` - Run fmt, vet, and test
+- `make help` - Show help message
 
 ## Demo
 

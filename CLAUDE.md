@@ -8,6 +8,7 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 - `pkg/client/` - Shared KubeVirt client utilities
 - `pkg/tools/` - MCP tool handlers for VM operations
 - `pkg/resources/` - MCP resource handlers for structured data access
+- `Makefile` - Build automation and development tasks
 - `server_config.json` - MCP server configuration for client integration
 - `go.mod` / `go.sum` - Go module dependencies
 
@@ -30,11 +31,28 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 
 ### Building
 ```bash
+# Using Makefile (recommended)
+make build
+
+# Or directly with go
 go build -o kubevirt-mcp-server .
 ```
 
+### Available Make Targets
+- `make build` - Build the binary (default)
+- `make clean` - Clean build artifacts
+- `make test` - Run tests
+- `make fmt` - Format Go code
+- `make vet` - Run go vet
+- `make deps` - Download and tidy dependencies
+- `make run` - Build and run the server
+- `make check` - Run fmt, vet, and test
+- `make help` - Show help message
+
 ### Testing
-Build the project to verify syntax and dependencies are correct.
+```bash
+make test
+```
 
 ## Git Commit Guidelines
 
