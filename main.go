@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -18,6 +20,7 @@ func main() {
 	s := server.NewMCPServer(
 		"kubevirt MCP server demo 🚀",
 		"0.0.1",
+		server.WithResourceCapabilities(true, true),
 	)
 
 	// TODO resources
@@ -97,6 +100,47 @@ func main() {
 		vmGetInstancetype,
 	)
 
+	// Add MCP Resources
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/vms",
+			"Virtual Machines",
+			mcp.WithResourceDescription("List of virtual machines in a namespace"),
+			mcp.WithMIMEType("application/json"),
+		),
+		vmsResource,
+	)
+
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/vm/*",
+			"Virtual Machine",
+			mcp.WithResourceDescription("Individual virtual machine details"),
+			mcp.WithMIMEType("application/json"),
+		),
+		vmResource,
+	)
+
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/vmis",
+			"Virtual Machine Instances",
+			mcp.WithResourceDescription("List of virtual machine instances in a namespace"),
+			mcp.WithMIMEType("application/json"),
+		),
+		vmisResource,
+	)
+
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/vmi/*",
+			"Virtual Machine Instance",
+			mcp.WithResourceDescription("Individual virtual machine instance details"),
+			mcp.WithMIMEType("application/json"),
+		),
+		vmiResource,
+	)
+
 	// TODO prompt
 	// describe virtual machine ?
 
@@ -104,6 +148,187 @@ func main() {
 	if err := server.ServeStdio(s); err != nil {
 		fmt.Printf("Server error: %v\n", err)
 	}
+}
+
+// Resource handlers
+
+func vmsResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace from URI: kubevirt://{namespace}/vms
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vms")
+	}
+	namespace := parts[2]
+
+	clientConfig := kubecli.DefaultClientConfig(&pflag.FlagSet{})
+	virtClient, err := kubecli.GetKubevirtClientFromClientConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	vms, err := virtClient.VirtualMachine(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	vmList := make([]map[string]interface{}, 0, len(vms.Items))
+	for _, vm := range vms.Items {
+		vmInfo := map[string]interface{}{
+			"name":      vm.Name,
+			"namespace": vm.Namespace,
+			"status":    vm.Status.PrintableStatus,
+			"created":   vm.CreationTimestamp,
+		}
+		if vm.Spec.RunStrategy != nil {
+			vmInfo["runStrategy"] = string(*vm.Spec.RunStrategy)
+		}
+		if vm.Spec.Instancetype != nil {
+			vmInfo["instanceType"] = vm.Spec.Instancetype.Name
+		}
+		vmList = append(vmList, vmInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(vmList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func vmResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 5 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	clientConfig := kubecli.DefaultClientConfig(&pflag.FlagSet{})
+	virtClient, err := kubecli.GetKubevirtClientFromClientConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(vm, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func vmisResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace from URI: kubevirt://{namespace}/vmis
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmis")
+	}
+	namespace := parts[2]
+
+	clientConfig := kubecli.DefaultClientConfig(&pflag.FlagSet{})
+	virtClient, err := kubecli.GetKubevirtClientFromClientConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	vmis, err := virtClient.VirtualMachineInstance(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	vmiList := make([]map[string]interface{}, 0, len(vmis.Items))
+	for _, vmi := range vmis.Items {
+		vmiInfo := map[string]interface{}{
+			"name":      vmi.Name,
+			"namespace": vmi.Namespace,
+			"phase":     vmi.Status.Phase,
+			"created":   vmi.CreationTimestamp,
+			"nodeName":  vmi.Status.NodeName,
+		}
+		if len(vmi.Status.Interfaces) > 0 {
+			interfaces := make([]map[string]interface{}, 0, len(vmi.Status.Interfaces))
+			for _, iface := range vmi.Status.Interfaces {
+				ifaceInfo := map[string]interface{}{
+					"name": iface.Name,
+				}
+				if iface.IP != "" {
+					ifaceInfo["ip"] = iface.IP
+				}
+				if iface.MAC != "" {
+					ifaceInfo["mac"] = iface.MAC
+				}
+				interfaces = append(interfaces, ifaceInfo)
+			}
+			vmiInfo["interfaces"] = interfaces
+		}
+		vmiList = append(vmiList, vmiInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(vmiList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func vmiResource(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 5 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	clientConfig := kubecli.DefaultClientConfig(&pflag.FlagSet{})
+	virtClient, err := kubecli.GetKubevirtClientFromClientConfig(clientConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	vmi, err := virtClient.VirtualMachineInstance(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(vmi, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
 }
 
 func vmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -129,7 +354,7 @@ func vmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 		return newToolResultErr(err)
 	}
 
-	message := "no instasnce type referenced by virtual machine"
+	message := "no instance type referenced by virtual machine"
 	if vm.Spec.Instancetype != nil {
 		message = vm.Spec.Instancetype.Name
 	}
