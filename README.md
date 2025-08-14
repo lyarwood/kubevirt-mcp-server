@@ -20,6 +20,8 @@ The project is organized into modular packages:
 - `list_vms` - List virtual machine names in a namespace
 - `start_vm` - Start a virtual machine
 - `stop_vm` - Stop a virtual machine
+- `restart_vm` - Restart a virtual machine (handles both running and stopped VMs)
+- `create_vm` - Create a virtual machine with specified container disk, optional instancetype and preference
 - `list_instancetypes` - List available instance types
 - `get_vm_instancetype` - Get instance type for a VM
 
@@ -120,7 +122,7 @@ The project includes comprehensive test coverage:
   - `tests/functional/functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
   - `tests/functional/mcp_server_stdio_test.go` - Complete MCP server API coverage:
     - MCP server initialization and JSON-RPC communication
-    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, list_instancetypes, get_vm_instancetype
+    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, create_vm, list_instancetypes, get_vm_instancetype
     - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
     - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
@@ -278,6 +280,7 @@ The MCP server provides Claude with these tools:
 - `start_vm` - Start a specific VM
 - `stop_vm` - Stop a specific VM
 - `restart_vm` - Restart a VM
+- `create_vm` - Create a new VM with container disk and optional instancetype/preference
 
 **Instance Types:**
 - `list_instancetypes` - List available instance types

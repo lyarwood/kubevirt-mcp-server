@@ -184,4 +184,122 @@ var _ = Describe("Tools", func() {
 			})
 		})
 	})
+
+	Describe("VmCreate", func() {
+		Context("when given invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name":           "test-vm",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+				}
+
+				result, err := tools.VmCreate(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode namespace string"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-ns",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+				}
+
+				result, err := tools.VmCreate(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode name string"))
+			})
+
+			It("should return an error for missing container_disk", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-ns",
+					"name":      "test-vm",
+				}
+
+				result, err := tools.VmCreate(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode container_disk string"))
+			})
+
+			It("should return an error for non-string instancetype", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-ns",
+					"name":           "test-vm",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+					"instancetype":   123,
+				}
+
+				result, err := tools.VmCreate(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode instancetype string"))
+			})
+
+			It("should return an error for non-string preference", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-ns",
+					"name":           "test-vm",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+					"preference":     123,
+				}
+
+				result, err := tools.VmCreate(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode preference string"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept all required arguments without instancetype and preference", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-ns",
+					"name":           "test-vm",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := tools.VmCreate(ctx, request)
+
+				// We expect it to fail at the client creation stage, not argument parsing
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("unable to decode"))
+			})
+
+			It("should accept optional instancetype and preference arguments", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-ns",
+					"name":           "test-vm",
+					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+					"instancetype":   "small",
+					"preference":     "fedora",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := tools.VmCreate(ctx, request)
+
+				// We expect it to fail at the client creation stage, not argument parsing
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("unable to decode"))
+			})
+		})
+	})
 })

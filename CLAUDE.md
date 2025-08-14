@@ -21,6 +21,7 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 - `start_vm` - Start a virtual machine
 - `stop_vm` - Stop a virtual machine
 - `restart_vm` - Restart a virtual machine (handles both running and stopped VMs)
+- `create_vm` - Create a virtual machine with specified container disk, optional instancetype and preference
 - `list_instancetypes` - List available instance types
 - `get_vm_instancetype` - Get instance type for a VM
 

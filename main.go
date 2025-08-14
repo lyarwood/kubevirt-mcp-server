@@ -111,6 +111,32 @@ func main() {
 		tools.VmGetInstancetype,
 	)
 
+	s.AddTool(
+		mcp.NewTool(
+			"create_vm",
+			mcp.WithDescription("create a virtual machine with the given name, container disk image, and optional instancetype and preference"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace for the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"container_disk",
+				mcp.Description("The container disk image to use for the VM"),
+				mcp.Required()),
+			mcp.WithString(
+				"instancetype",
+				mcp.Description("Optional instance type name")),
+			mcp.WithString(
+				"preference",
+				mcp.Description("Optional preference name")),
+		),
+		tools.VmCreate,
+	)
+
 	// Add MCP Resources
 	s.AddResource(
 		mcp.NewResource(

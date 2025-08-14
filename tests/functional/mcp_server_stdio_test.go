@@ -605,6 +605,163 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 		})
 	})
 
+	Context("create_vm tool", func() {
+		var createdVMName string
+
+		BeforeEach(func() {
+			createdVMName = fmt.Sprintf("test-created-vm-%d", time.Now().UnixNano())
+		})
+
+		AfterEach(func() {
+			By("Cleaning up created VM")
+			if createdVMName != "" {
+				err := virtClient.VirtualMachine(testNamespace).Delete(context.Background(), createdVMName, metav1.DeleteOptions{})
+				if err != nil {
+					// Log but don't fail the test if cleanup fails
+					GinkgoWriter.Printf("Warning: Failed to clean up VM %s: %v\n", createdVMName, err)
+				}
+			}
+		})
+
+		It("should create a VM through MCP server", func() {
+			By("Starting and initializing MCP server")
+			var err error
+			mcpServer, err = StartMCPServer()
+			Expect(err).NotTo(HaveOccurred())
+
+			// Initialize first
+			initRequest := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "initialize",
+				Params: map[string]interface{}{
+					"capabilities": map[string]interface{}{},
+					"clientInfo": map[string]interface{}{
+						"name":    "test-client",
+						"version": "1.0.0",
+					},
+				},
+				ID: 1,
+			}
+			_, err = mcpServer.SendRequest(initRequest)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Creating VM through MCP server")
+			createVMRequest := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "tools/call",
+				Params: map[string]interface{}{
+					"name": "create_vm",
+					"arguments": map[string]interface{}{
+						"namespace":      testNamespace,
+						"name":           createdVMName,
+						"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+					},
+				},
+				ID: 2,
+			}
+
+			response, err := mcpServer.SendRequest(createVMRequest)
+			Expect(err).NotTo(HaveOccurred(), "Should receive create_vm response")
+			Expect(response.Error).To(BeNil(), "create_vm should not return error")
+
+			result, ok := response.Result.(map[string]interface{})
+			Expect(ok).To(BeTrue(), "Result should be a map")
+			content, ok := result["content"].([]interface{})
+			Expect(ok).To(BeTrue(), "Result should contain content array")
+			Expect(len(content)).To(BeNumerically(">", 0), "Should have content")
+
+			textContent, ok := content[0].(map[string]interface{})
+			Expect(ok).To(BeTrue(), "Content should be a map")
+			text, ok := textContent["text"].(string)
+			Expect(ok).To(BeTrue(), "Content should have text field")
+			Expect(text).To(ContainSubstring(fmt.Sprintf("created VM %s", createdVMName)))
+
+			By("Verifying VM was actually created in KubeVirt")
+			Eventually(func() error {
+				vm, err := virtClient.VirtualMachine(testNamespace).Get(context.Background(), createdVMName, metav1.GetOptions{})
+				if err != nil {
+					return err
+				}
+				if vm.Name != createdVMName {
+					return fmt.Errorf("VM name mismatch: expected %s, got %s", createdVMName, vm.Name)
+				}
+				return nil
+			}, "30s", "1s").Should(Succeed(), "VM should be created in KubeVirt")
+
+			By("Verifying VM has correct container disk configuration")
+			vm, err := virtClient.VirtualMachine(testNamespace).Get(context.Background(), createdVMName, metav1.GetOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(vm.Spec.Template.Spec.Volumes).To(HaveLen(1))
+			Expect(vm.Spec.Template.Spec.Volumes[0].ContainerDisk).NotTo(BeNil())
+			Expect(vm.Spec.Template.Spec.Volumes[0].ContainerDisk.Image).To(Equal("quay.io/kubevirt/cirros-container-disk-demo"))
+		})
+
+		It("should create a VM with instancetype and preference", func() {
+			By("Starting and initializing MCP server")
+			var err error
+			mcpServer, err = StartMCPServer()
+			Expect(err).NotTo(HaveOccurred())
+
+			// Initialize first
+			initRequest := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "initialize",
+				Params: map[string]interface{}{
+					"capabilities": map[string]interface{}{},
+					"clientInfo": map[string]interface{}{
+						"name":    "test-client",
+						"version": "1.0.0",
+					},
+				},
+				ID: 1,
+			}
+			_, err = mcpServer.SendRequest(initRequest)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Creating VM with instancetype and preference through MCP server")
+			createVMRequest := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "tools/call",
+				Params: map[string]interface{}{
+					"name": "create_vm",
+					"arguments": map[string]interface{}{
+						"namespace":      testNamespace,
+						"name":           createdVMName,
+						"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
+						"instancetype":   "u1.small",
+						"preference":     "fedora",
+					},
+				},
+				ID: 2,
+			}
+
+			response, err := mcpServer.SendRequest(createVMRequest)
+			Expect(err).NotTo(HaveOccurred(), "Should receive create_vm response")
+			Expect(response.Error).To(BeNil(), "create_vm should not return error")
+
+			By("Verifying VM was created with instancetype and preference")
+			Eventually(func() error {
+				vm, err := virtClient.VirtualMachine(testNamespace).Get(context.Background(), createdVMName, metav1.GetOptions{})
+				if err != nil {
+					return err
+				}
+				if vm.Spec.Instancetype == nil {
+					return fmt.Errorf("VM should have instancetype")
+				}
+				if vm.Spec.Instancetype.Name != "u1.small" {
+					return fmt.Errorf("VM instancetype should be u1.small, got %s", vm.Spec.Instancetype.Name)
+				}
+				if vm.Spec.Preference == nil {
+					return fmt.Errorf("VM should have preference")
+				}
+				if vm.Spec.Preference.Name != "fedora" {
+					return fmt.Errorf("VM preference should be fedora, got %s", vm.Spec.Preference.Name)
+				}
+				return nil
+			}, "30s", "1s").Should(Succeed(), "VM should be created with instancetype and preference")
+		})
+	})
+
 	XContext("MCP Resources", func() {
 		var testVM *kubevirtv1.VirtualMachine
 

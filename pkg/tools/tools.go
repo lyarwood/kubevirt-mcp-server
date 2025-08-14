@@ -6,6 +6,8 @@ import (
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 
 	"github.com/mark3labs/mcp-go/mcp"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	virtv1 "kubevirt.io/api/core/v1"
 )
@@ -257,6 +259,117 @@ func VmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 			mcp.TextContent{
 				Type: "text",
 				Text: message,
+			},
+		},
+	}, nil
+}
+
+func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	ns := request.Params.Arguments["namespace"]
+	namespace, ok := ns.(string)
+	if !ok {
+		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	}
+	n := request.Params.Arguments["name"]
+	name, ok := n.(string)
+	if !ok {
+		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	}
+	cd := request.Params.Arguments["container_disk"]
+	containerDisk, ok := cd.(string)
+	if !ok {
+		return newToolResultErr(fmt.Errorf("unable to decode container_disk string"))
+	}
+
+	vm := &virtv1.VirtualMachine{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: virtv1.VirtualMachineSpec{
+			RunStrategy: &[]virtv1.VirtualMachineRunStrategy{virtv1.RunStrategyHalted}[0],
+			Template: &virtv1.VirtualMachineInstanceTemplateSpec{
+				Spec: virtv1.VirtualMachineInstanceSpec{
+					Domain: virtv1.DomainSpec{
+						Devices: virtv1.Devices{
+							Disks: []virtv1.Disk{
+								{
+									Name: "containerdisk",
+									DiskDevice: virtv1.DiskDevice{
+										Disk: &virtv1.DiskTarget{
+											Bus: "virtio",
+										},
+									},
+								},
+							},
+						},
+					},
+					Volumes: []virtv1.Volume{
+						{
+							Name: "containerdisk",
+							VolumeSource: virtv1.VolumeSource{
+								ContainerDisk: &virtv1.ContainerDiskSource{
+									Image: containerDisk,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Only set memory resources if no instancetype is provided
+	// Instancetypes define their own resource requirements
+	hasInstancetype := false
+
+	if it := request.Params.Arguments["instancetype"]; it != nil {
+		instancetype, ok := it.(string)
+		if !ok {
+			return newToolResultErr(fmt.Errorf("unable to decode instancetype string"))
+		}
+		vm.Spec.Instancetype = &virtv1.InstancetypeMatcher{
+			Name: instancetype,
+			Kind: "VirtualMachineClusterInstancetype",
+		}
+		hasInstancetype = true
+	}
+
+	if pref := request.Params.Arguments["preference"]; pref != nil {
+		preference, ok := pref.(string)
+		if !ok {
+			return newToolResultErr(fmt.Errorf("unable to decode preference string"))
+		}
+		vm.Spec.Preference = &virtv1.PreferenceMatcher{
+			Name: preference,
+			Kind: "VirtualMachineClusterPreference",
+		}
+	}
+
+	// Set default memory only if no instancetype is provided
+	if !hasInstancetype {
+		vm.Spec.Template.Spec.Domain.Resources = virtv1.ResourceRequirements{
+			Requests: corev1.ResourceList{
+				corev1.ResourceMemory: resource.MustParse("128Mi"),
+			},
+		}
+	}
+
+	_, err = virtClient.VirtualMachine(namespace).Create(ctx, vm, metav1.CreateOptions{})
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("created VM %s in namespace %s", name, namespace),
 			},
 		},
 	}, nil
