@@ -1,3 +1,4 @@
+_kubevirtci
 server_config.json
 kubevirt-mcp-server
 coverage.out

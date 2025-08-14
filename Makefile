@@ -6,7 +6,7 @@ GO_FILES := $(shell find . -type f -name '*.go')
 IMAGE_NAME := kubevirt-mcp-server
 IMAGE_TAG := latest
 
-.PHONY: build clean test fmt vet deps help image
+.PHONY: build clean test fmt vet deps help image cluster-up cluster-down
 
 # Default target
 all: build
@@ -74,6 +74,18 @@ image:
 	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
 	@echo "Container image built successfully!"
 
+# Start kubevirtci cluster
+cluster-up:
+	@echo "Starting kubevirtci cluster..."
+	./scripts/kubevirtci.sh up
+	@echo "Cluster started! Use 'make cluster-down' to stop."
+
+# Stop kubevirtci cluster
+cluster-down:
+	@echo "Stopping kubevirtci cluster..."
+	./scripts/kubevirtci.sh down
+	@echo "Cluster stopped!"
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -88,4 +100,6 @@ help:
 	@echo "  run       - Build and run the server"
 	@echo "  check     - Run fmt, vet, lint, and test"
 	@echo "  image     - Build container image"
+	@echo "  cluster-up   - Start kubevirtci cluster for testing"
+	@echo "  cluster-down - Stop kubevirtci cluster"
 	@echo "  help      - Show this help message"

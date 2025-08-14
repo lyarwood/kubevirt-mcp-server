@@ -8,6 +8,7 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 - `pkg/client/` - Shared KubeVirt client utilities
 - `pkg/tools/` - MCP tool handlers for VM operations
 - `pkg/resources/` - MCP resource handlers for structured data access
+- `scripts/kubevirtci.sh` - Script for managing local kubevirtci development environment
 - `Makefile` - Build automation and development tasks
 - `server_config.json` - MCP server configuration for client integration
 - `go.mod` / `go.sum` - Go module dependencies
@@ -50,6 +51,8 @@ go build -o kubevirt-mcp-server .
 - `make deps` - Download and tidy dependencies
 - `make run` - Build and run the server
 - `make check` - Run fmt, vet, lint, and test
+- `make cluster-up` - Start kubevirtci cluster for testing
+- `make cluster-down` - Stop kubevirtci cluster
 - `make help` - Show help message
 
 ### Testing
@@ -73,6 +76,24 @@ make lint
 # Run all quality checks (fmt + vet + lint + test)
 make check
 ```
+
+### Local Development Environment
+
+For functional testing with a real KubeVirt cluster, use the kubevirtci integration:
+
+```bash
+# Start a local kubevirtci cluster with KubeVirt
+make cluster-up
+
+# Stop the cluster when done
+make cluster-down
+```
+
+The `scripts/kubevirtci.sh` script handles:
+- Downloading and setting up kubevirtci
+- Starting a local Kubernetes cluster with KubeVirt and CDI
+- Configuring the environment for testing
+- Providing access to kubectl, kubeconfig, and registry
 
 #### Test Structure
 - `pkg/client/client_test.go` - Tests for KubeVirt client creation
