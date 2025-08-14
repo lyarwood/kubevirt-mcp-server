@@ -3,8 +3,10 @@
 BINARY_NAME := kubevirt-mcp-server
 BUILD_DIR := .
 GO_FILES := $(shell find . -type f -name '*.go')
+IMAGE_NAME := kubevirt-mcp-server
+IMAGE_TAG := latest
 
-.PHONY: build clean test fmt vet deps help
+.PHONY: build clean test fmt vet deps help image
 
 # Default target
 all: build
@@ -66,6 +68,12 @@ run: build
 check: fmt vet lint test
 	@echo "Code quality checks complete!"
 
+# Build container image
+image:
+	@echo "Building container image $(IMAGE_NAME):$(IMAGE_TAG)..."
+	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+	@echo "Container image built successfully!"
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -79,4 +87,5 @@ help:
 	@echo "  deps      - Download and tidy dependencies"
 	@echo "  run       - Build and run the server"
 	@echo "  check     - Run fmt, vet, lint, and test"
+	@echo "  image     - Build container image"
 	@echo "  help      - Show this help message"
