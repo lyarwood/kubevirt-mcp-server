@@ -44,7 +44,7 @@ var _ = Describe("Resources", func() {
 						URI       string                 `json:"uri"`
 						Arguments map[string]interface{} `json:"arguments,omitempty"`
 					}{
-						URI: "kubevirt://",
+						URI: "kubevirt:/vms",
 					},
 				}
 
@@ -103,7 +103,7 @@ var _ = Describe("Resources", func() {
 						URI       string                 `json:"uri"`
 						Arguments map[string]interface{} `json:"arguments,omitempty"`
 					}{
-						URI: "kubevirt://test-ns/vm/",
+						URI: "kubevirt://test-ns/vm",
 					},
 				}
 
@@ -204,7 +204,7 @@ var _ = Describe("Resources", func() {
 						URI       string                 `json:"uri"`
 						Arguments map[string]interface{} `json:"arguments,omitempty"`
 					}{
-						URI: "kubevirt://test-ns/vmi/",
+						URI: "kubevirt://test-ns/vmi",
 					},
 				}
 
