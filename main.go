@@ -73,6 +73,22 @@ func main() {
 
 	s.AddTool(
 		mcp.NewTool(
+			"restart_vm",
+			mcp.WithDescription("restart the virtual machine with a given name in the provided namespace"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		tools.VmRestart,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
 			"list_instancetypes",
 			mcp.WithDescription("list the name of all instance types"),
 		),

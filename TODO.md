@@ -5,7 +5,7 @@ This document tracks potential improvements and future features for the KubeVirt
 ## High Priority
 
 ### Core Functionality
-- [ ] Add VM restart functionality to MCP tools
+- [x] Add VM restart functionality to MCP tools
 - [ ] Implement VM instance type modification tool
 - [ ] Add VM status filtering in resource handlers (running, stopped, etc.)
 - [ ] Add label-based filtering for VM and VMI resources

@@ -107,6 +107,36 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
+	Describe("VmRestart", func() {
+		Context("when given invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name": "test-vm",
+				}
+
+				result, err := tools.VmRestart(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode namespace string"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-ns",
+				}
+
+				result, err := tools.VmRestart(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("unable to decode name string"))
+			})
+		})
+	})
+
 	Describe("VmGetInstancetype", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {

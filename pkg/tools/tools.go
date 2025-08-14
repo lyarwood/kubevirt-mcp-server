@@ -159,6 +159,73 @@ func InstancetypesList(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 	}, nil
 }
 
+func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	ns := request.Params.Arguments["namespace"]
+	namespace, ok := ns.(string)
+	if !ok {
+		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	}
+	n := request.Params.Arguments["name"]
+	name, ok := n.(string)
+	if !ok {
+		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	}
+
+	// Get the VM to check its current state
+	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	// Check if VM has a running VMI
+	_, err = virtClient.VirtualMachineInstance(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		// If VMI doesn't exist, just start the VM
+		s := virtv1.RunStrategyAlways
+		vm.Spec.RunStrategy = &s
+		_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+		if err != nil {
+			return newToolResultErr(err)
+		}
+		return &mcp.CallToolResult{
+			Content: []mcp.Content{
+				mcp.TextContent{
+					Type: "text",
+					Text: fmt.Sprintf("started %s (was not running)", name),
+				},
+			},
+		}, nil
+	}
+
+	// If VMI exists, restart by deleting the VMI (VM will recreate it)
+	err = virtClient.VirtualMachineInstance(namespace).Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	// Ensure VM is set to restart by setting RunStrategy to Always
+	s := virtv1.RunStrategyAlways
+	vm.Spec.RunStrategy = &s
+	_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+	if err != nil {
+		return newToolResultErr(err)
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: fmt.Sprintf("restarted %s", name),
+			},
+		},
+	}, nil
+}
+
 func VmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {

@@ -17,7 +17,8 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 ### MCP Tools
 - `list_vms` - List virtual machine names in a namespace
 - `start_vm` - Start a virtual machine
-- `stop_vm` - Stop a virtual machine  
+- `stop_vm` - Stop a virtual machine
+- `restart_vm` - Restart a virtual machine (handles both running and stopped VMs)
 - `list_instancetypes` - List available instance types
 - `get_vm_instancetype` - Get instance type for a VM
 
