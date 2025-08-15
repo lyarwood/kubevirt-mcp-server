@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	
+
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools"
 
@@ -16,6 +16,7 @@ func main() {
 		"kubevirt MCP server demo 🚀",
 		"0.0.1",
 		server.WithResourceCapabilities(true, true),
+		server.WithLogging(),
 	)
 
 	// TODO resources
