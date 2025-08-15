@@ -179,6 +179,16 @@ func main() {
 		resources.VmiGet,
 	)
 
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/datavolumes",
+			"Data Volumes",
+			mcp.WithResourceDescription("List of data volumes with source and storage information"),
+			mcp.WithMIMEType("application/json"),
+		),
+		resources.DataVolumesList,
+	)
+
 	// TODO prompt
 	// describe virtual machine ?
 

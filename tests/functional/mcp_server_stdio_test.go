@@ -215,7 +215,7 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 			Expect(ok).To(BeTrue(), "Result should be a map")
 			content, ok := result["content"].([]interface{})
 			Expect(ok).To(BeTrue(), "Result should contain content array")
-			
+
 			// Should be empty initially (no VMs in test namespace)
 			Expect(len(content)).To(Equal(1), "Should have one content item (text response)")
 			contentItem, ok := content[0].(map[string]interface{})
@@ -333,7 +333,7 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 			Expect(ok).To(BeTrue(), "Result should be a map")
 			content, ok := result["content"].([]interface{})
 			Expect(ok).To(BeTrue(), "Result should contain content array")
-			
+
 			Expect(len(content)).To(Equal(1), "Should have one content item")
 			contentItem, ok := content[0].(map[string]interface{})
 			Expect(ok).To(BeTrue(), "Content item should be a map")
@@ -1102,7 +1102,7 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 				JSONRPC: "2.0",
 				Method:  "tools/call",
 				Params: map[string]interface{}{
-					"name": "list_vms",
+					"name":      "list_vms",
 					"arguments": map[string]interface{}{
 						// Missing namespace argument
 					},
