@@ -296,4 +296,63 @@ var _ = Describe("Resources", func() {
 			})
 		})
 	})
+
+	Describe("DataVolumeGet", func() {
+		Context("when given invalid URI", func() {
+			It("should return an error for malformed URI", func() {
+				request := mcp.ReadResourceRequest{
+					Params: struct {
+						URI       string                 `json:"uri"`
+						Arguments map[string]interface{} `json:"arguments,omitempty"`
+					}{
+						URI: "invalid-uri",
+					},
+				}
+
+				result, err := resources.DataVolumeGet(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
+				Expect(result).To(BeNil())
+			})
+
+			It("should return an error for URI missing DataVolume name", func() {
+				request := mcp.ReadResourceRequest{
+					Params: struct {
+						URI       string                 `json:"uri"`
+						Arguments map[string]interface{} `json:"arguments,omitempty"`
+					}{
+						URI: "kubevirt://test-namespace/datavolume",
+					},
+				}
+
+				result, err := resources.DataVolumeGet(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
+				Expect(result).To(BeNil())
+			})
+		})
+
+		Context("when given valid URI format", func() {
+			It("should parse namespace and name correctly", func() {
+				request := mcp.ReadResourceRequest{
+					Params: struct {
+						URI       string                 `json:"uri"`
+						Arguments map[string]interface{} `json:"arguments,omitempty"`
+					}{
+						URI: "kubevirt://test-namespace/datavolume/test-dv",
+					},
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
+				result, err := resources.DataVolumeGet(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result).To(BeNil())
+				// Should not contain URI parsing errors
+				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
+			})
+		})
+	})
 })

@@ -278,3 +278,38 @@ func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 		},
 	}, nil
 }
+
+func DataVolumeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/datavolume/{name}
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 5 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/datavolume/{name}")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the underlying clientset to access CDI resources
+	clientset := virtClient.CdiClient()
+	dataVolume, err := clientset.CdiV1beta1().DataVolumes(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(dataVolume, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
