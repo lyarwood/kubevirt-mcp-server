@@ -4,12 +4,47 @@ This document tracks potential improvements and future features for the KubeVirt
 
 ## High Priority
 
+### MCP Tools & Resources (Based on KubeVirt API Analysis)
+
+#### New MCP Tools
+- [ ] `delete_vm` - Delete a virtual machine
+- [ ] `update_vm` - Update VM configuration (memory, CPU, etc.)
+- [ ] `pause_vm` - Pause a running VM
+- [ ] `unpause_vm` - Unpause a paused VM
+- [ ] `addvolume_vm` - Add volume to VM
+- [ ] `removevolume_vm` - Remove volume from VM
+- [ ] `migrate_vm` - Migrate VM to different node
+- [ ] `get_vm_console` - Get VM console connection info
+- [ ] `get_vm_guestinfo` - Get guest OS information
+- [ ] `get_vm_filesystems` - List VM filesystems
+- [ ] `get_vm_userlist` - Get VM user list
+- [ ] `clone_vm` - Clone VM from existing VM or template
+
+#### New MCP Resources
+- [ ] `kubevirt://{namespace}/datavolumes` - List DataVolumes
+- [ ] `kubevirt://{namespace}/datavolume/{name}` - Get specific DataVolume
+- [ ] `kubevirt://{namespace}/vm/{name}/status` - Get VM status and phase
+- [ ] `kubevirt://{namespace}/vmi/{name}/guestosinfo` - Get guest OS info
+- [ ] `kubevirt://{namespace}/vmi/{name}/filesystems` - Get filesystem info
+- [ ] `kubevirt://{namespace}/vmi/{name}/userlist` - Get user list
+- [ ] `kubevirt://{namespace}/vm/{name}/console` - Get console connection details
+- [ ] `kubevirt://{namespace}/instancetypes` - List namespaced instance types
+- [ ] `kubevirt://{namespace}/preferences` - List namespaced VM preferences
+- [ ] `kubevirt://cluster/instancetypes` - List cluster-wide instance types
+- [ ] `kubevirt://cluster/preferences` - List cluster-wide VM preferences
+- [ ] `kubevirt://cluster/instancetype/{name}` - Get specific cluster instance type
+- [ ] `kubevirt://cluster/preference/{name}` - Get specific cluster preference
+
 ### Core Functionality
 - [x] Add VM restart functionality to MCP tools
 - [ ] Implement VM instance type modification tool
 - [ ] Add VM status filtering in resource handlers (running, stopped, etc.)
 - [ ] Add label-based filtering for VM and VMI resources
 - [ ] Implement VM cloning/template functionality
+- [ ] Add VM deletion tool (delete_vm)
+- [ ] Add VM update/modification tool (update_vm)
+- [ ] Implement VM pause/unpause functionality
+- [ ] Add VM addvolume/removevolume tools for disk management
 
 ### Error Handling & Validation
 - [ ] Improve error messages with more specific context
@@ -31,13 +66,22 @@ This document tracks potential improvements and future features for the KubeVirt
 - [ ] Add VM snapshot creation and management
 - [ ] Support for VM migration between nodes
 - [ ] Add VM resource usage metrics (CPU, memory, storage)
+- [ ] Add VMI (VirtualMachineInstance) specific tools and resources
+- [ ] Implement Data Volume (DV) management tools
+- [ ] Add Virtual Machine Instance Preset (VMIP) support
+- [ ] Support for VM expanding/shrinking (hot-plug resources)
 
 ### User Experience
-- [ ] Add VM console access capabilities
+- [ ] Add VM console access capabilities (VNC, serial, guest agent)
 - [ ] Implement VM event streaming/monitoring
 - [ ] Add bulk operations (start/stop multiple VMs)
 - [ ] Provide VM scheduling and lifecycle management
 - [ ] Add VM backup and restore functionality
+- [ ] Add VM guest OS info retrieval tool
+- [ ] Implement VM filesystem listing tool
+- [ ] Add VM userlist and guest agent info tools
+- [ ] Support for VM screenshot/image capture
+- [ ] Add VM performance metrics and monitoring tools
 
 ### Performance & Scalability
 - [ ] Implement caching for frequently accessed resources
@@ -76,6 +120,11 @@ This document tracks potential improvements and future features for the KubeVirt
 - [ ] Add multi-cluster support
 - [ ] Integration with CI/CD pipelines for VM management
 - [ ] Support for VM templating and golden images
+- [ ] Add VM clone capabilities with different storage classes
+- [ ] Implement VM live migration tools
+- [ ] Support for VM memory dump and analysis
+- [ ] Add VM VSOCK (virtio socket) management
+- [ ] Implement VM SELinux and security context management
 
 ### Integration
 - [ ] Add support for other virtualization platforms
