@@ -34,8 +34,11 @@ The `create_vm` tool supports both full container image URLs and OS name shortcu
 ### MCP Resources
 - `kubevirt://{namespace}/vms` - JSON list of VMs with summary info
 - `kubevirt://{namespace}/vm/{name}` - Complete VM specification
+- `kubevirt://{namespace}/vm/{name}/status` - VM status and phase information
 - `kubevirt://{namespace}/vmis` - JSON list of VMIs with runtime info
 - `kubevirt://{namespace}/vmi/{name}` - Complete VMI specification
+- `kubevirt://{namespace}/datavolumes` - JSON list of DataVolumes with source and storage info
+- `kubevirt://{namespace}/datavolume/{name}` - Complete DataVolume specification
 
 ## Development
 

@@ -313,3 +313,87 @@ func DataVolumeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.
 		},
 	}, nil
 }
+
+func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}/status
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 6 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}/status")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a focused status response
+	statusInfo := map[string]interface{}{
+		"name":      vm.Name,
+		"namespace": vm.Namespace,
+		"status":    vm.Status.PrintableStatus,
+		"phase":     vm.Status.Ready,
+		"created":   vm.CreationTimestamp,
+		"ready":     vm.Status.Ready,
+	}
+
+	if vm.Spec.RunStrategy != nil {
+		statusInfo["runStrategy"] = string(*vm.Spec.RunStrategy)
+	}
+
+	// Add state change requests if available
+	if len(vm.Status.StateChangeRequests) > 0 {
+		requests := make([]map[string]interface{}, 0, len(vm.Status.StateChangeRequests))
+		for _, req := range vm.Status.StateChangeRequests {
+			request := map[string]interface{}{
+				"action": req.Action,
+			}
+			if req.UID != nil {
+				request["uid"] = *req.UID
+			}
+			requests = append(requests, request)
+		}
+		statusInfo["stateChangeRequests"] = requests
+	}
+
+	// Add conditions if available
+	if len(vm.Status.Conditions) > 0 {
+		conditions := make([]map[string]interface{}, 0, len(vm.Status.Conditions))
+		for _, cond := range vm.Status.Conditions {
+			condition := map[string]interface{}{
+				"type":   cond.Type,
+				"status": cond.Status,
+			}
+			if cond.Reason != "" {
+				condition["reason"] = cond.Reason
+			}
+			if cond.Message != "" {
+				condition["message"] = cond.Message
+			}
+			if !cond.LastTransitionTime.IsZero() {
+				condition["lastTransitionTime"] = cond.LastTransitionTime
+			}
+			conditions = append(conditions, condition)
+		}
+		statusInfo["conditions"] = conditions
+	}
+
+	jsonData, err := json.MarshalIndent(statusInfo, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}

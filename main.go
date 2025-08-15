@@ -199,6 +199,16 @@ func main() {
 		resources.DataVolumeGet,
 	)
 
+	s.AddResource(
+		mcp.NewResource(
+			"kubevirt://*/vm/*/status",
+			"VM Status",
+			mcp.WithResourceDescription("Virtual machine status and phase information"),
+			mcp.WithMIMEType("application/json"),
+		),
+		resources.VmGetStatus,
+	)
+
 	// TODO prompt
 	// describe virtual machine ?
 
