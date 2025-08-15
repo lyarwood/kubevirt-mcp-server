@@ -21,9 +21,9 @@ This document tracks potential improvements and future features for the KubeVirt
 - [ ] `clone_vm` - Clone VM from existing VM or template
 
 #### New MCP Resources
-- [ ] `kubevirt://{namespace}/datavolumes` - List DataVolumes
-- [ ] `kubevirt://{namespace}/datavolume/{name}` - Get specific DataVolume
-- [ ] `kubevirt://{namespace}/vm/{name}/status` - Get VM status and phase
+- [x] `kubevirt://{namespace}/datavolumes` - List DataVolumes
+- [x] `kubevirt://{namespace}/datavolume/{name}` - Get specific DataVolume
+- [x] `kubevirt://{namespace}/vm/{name}/status` - Get VM status and phase
 - [ ] `kubevirt://{namespace}/vmi/{name}/guestosinfo` - Get guest OS info
 - [ ] `kubevirt://{namespace}/vmi/{name}/filesystems` - Get filesystem info
 - [ ] `kubevirt://{namespace}/vmi/{name}/userlist` - Get user list
