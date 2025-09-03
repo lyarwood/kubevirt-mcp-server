@@ -31,10 +31,9 @@ func VmsList(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRes
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
 	vms, err := virtClient.VirtualMachine(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
@@ -62,15 +61,13 @@ func VmStart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRes
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
-	n := request.Params.Arguments["name"]
-	name, ok := n.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	name, err := request.RequireString("name")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
 	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
@@ -102,15 +99,13 @@ func VmStop(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
-	n := request.Params.Arguments["name"]
-	name, ok := n.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	name, err := request.RequireString("name")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
 	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
@@ -168,15 +163,13 @@ func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
-	n := request.Params.Arguments["name"]
-	name, ok := n.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	name, err := request.RequireString("name")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
 	// Get the VM to check its current state
@@ -235,15 +228,13 @@ func VmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
-	n := request.Params.Arguments["name"]
-	name, ok := n.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	name, err := request.RequireString("name")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
 	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
@@ -305,20 +296,17 @@ func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRe
 		return newToolResultErr(err)
 	}
 
-	ns := request.Params.Arguments["namespace"]
-	namespace, ok := ns.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode namespace string"))
+	namespace, err := request.RequireString("namespace")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
 	}
-	n := request.Params.Arguments["name"]
-	name, ok := n.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode name string"))
+	name, err := request.RequireString("name")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
-	cd := request.Params.Arguments["container_disk"]
-	containerDiskInput, ok := cd.(string)
-	if !ok {
-		return newToolResultErr(fmt.Errorf("unable to decode container_disk string"))
+	containerDiskInput, err := request.RequireString("container_disk")
+	if err != nil {
+		return newToolResultErr(fmt.Errorf("container_disk parameter required: %w", err))
 	}
 
 	// Resolve the container disk image (handles OS names like "fedora", "ubuntu", etc.)
@@ -366,11 +354,8 @@ func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRe
 	// Instancetypes define their own resource requirements
 	hasInstancetype := false
 
-	if it := request.Params.Arguments["instancetype"]; it != nil {
-		instancetype, ok := it.(string)
-		if !ok {
-			return newToolResultErr(fmt.Errorf("unable to decode instancetype string"))
-		}
+	instancetype := request.GetString("instancetype", "")
+	if instancetype != "" {
 		vm.Spec.Instancetype = &virtv1.InstancetypeMatcher{
 			Name: instancetype,
 			Kind: "VirtualMachineClusterInstancetype",
@@ -378,11 +363,8 @@ func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRe
 		hasInstancetype = true
 	}
 
-	if pref := request.Params.Arguments["preference"]; pref != nil {
-		preference, ok := pref.(string)
-		if !ok {
-			return newToolResultErr(fmt.Errorf("unable to decode preference string"))
-		}
+	preference := request.GetString("preference", "")
+	if preference != "" {
 		vm.Spec.Preference = &virtv1.PreferenceMatcher{
 			Name: preference,
 			Kind: "VirtualMachineClusterPreference",
