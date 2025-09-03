@@ -16,6 +16,21 @@ The project is organized into modular packages:
 
 ## Features
 
+### Transport Options
+
+The MCP server supports two transport modes:
+
+#### Stdio Transport (Default)
+- Standard input/output communication for direct integration with MCP clients
+- Default mode when no command line flags are provided  
+- Used by Claude CLI and other MCP client tools
+
+#### HTTP Transport
+- REST-like API over HTTP with JSON-RPC 2.0
+- Stateless operation for web service integration
+- Exposed endpoints at `/mcp` by default
+- Standard MCP endpoints: initialize, tools/list, tools/call, resources/list, resources/read
+
 ### MCP Tools
 - `list_vms` - List virtual machine names in a namespace
 - `start_vm` - Start a virtual machine
@@ -39,6 +54,25 @@ make build
 
 # Or directly with go
 go build -o kubevirt-mcp-server .
+```
+
+## Usage
+
+### Stdio Transport (Default)
+```bash
+# Start with stdio transport for MCP clients
+./kubevirt-mcp-server
+```
+
+### HTTP Transport
+```bash
+# Start with HTTP transport on port 8080
+./kubevirt-mcp-server -http :8080
+
+# Test the HTTP endpoints
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' \
+  http://localhost:8080/mcp
 ```
 
 ## Development

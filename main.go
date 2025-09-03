@@ -1,7 +1,8 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"log"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools"
@@ -11,11 +12,18 @@ import (
 )
 
 func main() {
+	// Parse command line flags
+	var (
+		httpAddr = flag.String("http", "", "HTTP server address (e.g., ':8080'). If empty, uses stdio transport.")
+	)
+	flag.Parse()
+
 	// Create MCP server
 	s := server.NewMCPServer(
 		"kubevirt MCP server demo 🚀",
 		"0.0.1",
 		server.WithResourceCapabilities(true, true),
+		server.WithToolCapabilities(true),
 		server.WithLogging(),
 	)
 
@@ -212,8 +220,21 @@ func main() {
 	// TODO prompt
 	// describe virtual machine ?
 
-	// Start the stdio server
-	if err := server.ServeStdio(s); err != nil {
-		fmt.Printf("Server error: %v\n", err)
+	// Start the appropriate server based on command line flags
+	if *httpAddr != "" {
+		// Start HTTP server
+		log.Printf("Starting KubeVirt MCP HTTP server on %s", *httpAddr)
+		httpServer := server.NewStreamableHTTPServer(s, 
+			server.WithStateLess(true), // Enable stateless mode for easier testing
+		)
+		if err := httpServer.Start(*httpAddr); err != nil {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+	} else {
+		// Start stdio server (default)
+		log.Printf("Starting KubeVirt MCP stdio server")
+		if err := server.ServeStdio(s); err != nil {
+			log.Fatalf("Stdio server error: %v", err)
+		}
 	}
 }
