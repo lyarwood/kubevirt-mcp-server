@@ -397,3 +397,430 @@ func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Re
 		},
 	}, nil
 }
+
+func VmiGetGuestOSInfo(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/guestosinfo
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 6 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/guestosinfo")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	guestOSInfo, err := virtClient.VirtualMachineInstance(namespace).GuestOsInfo(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(guestOSInfo, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func VmiGetFilesystems(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/filesystems
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 6 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/filesystems")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	filesystems, err := virtClient.VirtualMachineInstance(namespace).FilesystemList(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(filesystems, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func VmiGetUserList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/userlist
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 6 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/userlist")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	userList, err := virtClient.VirtualMachineInstance(namespace).UserList(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(userList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}/console
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 6 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}/console")
+	}
+	namespace := parts[2]
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the VMI to check console info
+	vmi, err := virtClient.VirtualMachineInstance(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Create console connection info
+	consoleInfo := map[string]interface{}{
+		"name":      vmi.Name,
+		"namespace": vmi.Namespace,
+		"phase":     vmi.Status.Phase,
+		"nodeName":  vmi.Status.NodeName,
+	}
+
+	// Add available console types
+	consoles := []string{}
+	if vmi.Status.Phase == "Running" {
+		// These are the typical console types available in KubeVirt
+		consoles = append(consoles, "vnc", "serial")
+		
+		// Check if guest agent is available
+		for _, condition := range vmi.Status.Conditions {
+			if condition.Type == "AgentConnected" && condition.Status == "True" {
+				consoles = append(consoles, "guest-agent")
+				break
+			}
+		}
+	}
+	consoleInfo["availableConsoles"] = consoles
+
+	// Add connection details
+	if len(consoles) > 0 {
+		connectionInfo := map[string]interface{}{
+			"note": "Use kubectl or virtctl to connect to consoles",
+			"commands": map[string]string{
+				"vnc":    fmt.Sprintf("virtctl vnc %s -n %s", name, namespace),
+				"serial": fmt.Sprintf("virtctl console %s -n %s", name, namespace),
+			},
+		}
+		consoleInfo["connectionInfo"] = connectionInfo
+	}
+
+	jsonData, err := json.MarshalIndent(consoleInfo, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func InstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace from URI: kubevirt://{namespace}/instancetypes
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/instancetypes")
+	}
+	namespace := parts[2]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	instancetypes, err := virtClient.VirtualMachineInstancetype(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	instancetypeList := make([]map[string]interface{}, 0, len(instancetypes.Items))
+	for _, it := range instancetypes.Items {
+		itInfo := map[string]interface{}{
+			"name":      it.Name,
+			"namespace": it.Namespace,
+			"created":   it.CreationTimestamp,
+		}
+
+		// Add CPU and memory info if available
+		if it.Spec.CPU.Guest != 0 {
+			itInfo["cpu"] = it.Spec.CPU.Guest
+		}
+		if !it.Spec.Memory.Guest.IsZero() {
+			itInfo["memory"] = it.Spec.Memory.Guest.String()
+		}
+
+		instancetypeList = append(instancetypeList, itInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(instancetypeList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func PreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse namespace from URI: kubevirt://{namespace}/preferences
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/preferences")
+	}
+	namespace := parts[2]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	preferences, err := virtClient.VirtualMachinePreference(namespace).List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	preferenceList := make([]map[string]interface{}, 0, len(preferences.Items))
+	for _, pref := range preferences.Items {
+		prefInfo := map[string]interface{}{
+			"name":      pref.Name,
+			"namespace": pref.Namespace,
+			"created":   pref.CreationTimestamp,
+		}
+
+		// Add preference details if available
+		if pref.Spec.Machine != nil {
+			prefInfo["hasMachinePreferences"] = true
+		}
+
+		preferenceList = append(preferenceList, prefInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(preferenceList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func ClusterInstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse URI: kubevirt://cluster/instancetypes
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 || parts[2] != "cluster" {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/instancetypes")
+	}
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	instancetypes, err := virtClient.VirtualMachineClusterInstancetype().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	instancetypeList := make([]map[string]interface{}, 0, len(instancetypes.Items))
+	for _, it := range instancetypes.Items {
+		itInfo := map[string]interface{}{
+			"name":    it.Name,
+			"created": it.CreationTimestamp,
+		}
+
+		// Add CPU and memory info if available
+		if it.Spec.CPU.Guest != 0 {
+			itInfo["cpu"] = it.Spec.CPU.Guest
+		}
+		if !it.Spec.Memory.Guest.IsZero() {
+			itInfo["memory"] = it.Spec.Memory.Guest.String()
+		}
+
+		instancetypeList = append(instancetypeList, itInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(instancetypeList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func ClusterPreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse URI: kubevirt://cluster/preferences
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 3 || parts[2] != "cluster" {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/preferences")
+	}
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	preferences, err := virtClient.VirtualMachineClusterPreference().List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	preferenceList := make([]map[string]interface{}, 0, len(preferences.Items))
+	for _, pref := range preferences.Items {
+		prefInfo := map[string]interface{}{
+			"name":    pref.Name,
+			"created": pref.CreationTimestamp,
+		}
+
+		// Add preference details if available
+		if pref.Spec.Machine != nil {
+			prefInfo["hasMachinePreferences"] = true
+		}
+
+		preferenceList = append(preferenceList, prefInfo)
+	}
+
+	jsonData, err := json.MarshalIndent(preferenceList, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func ClusterInstancetypeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse name from URI: kubevirt://cluster/instancetype/{name}
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 5 || parts[2] != "cluster" {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/instancetype/{name}")
+	}
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	instancetype, err := virtClient.VirtualMachineClusterInstancetype().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(instancetype, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}
+
+func ClusterPreferenceGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+	// Parse name from URI: kubevirt://cluster/preference/{name}
+	parts := strings.Split(request.Params.URI, "/")
+	if len(parts) < 5 || parts[2] != "cluster" {
+		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/preference/{name}")
+	}
+	name := parts[4]
+
+	virtClient, err := client.GetKubevirtClient()
+	if err != nil {
+		return nil, err
+	}
+
+	preference, err := virtClient.VirtualMachineClusterPreference().Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	jsonData, err := json.MarshalIndent(preference, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+
+	return []mcp.ResourceContents{
+		&mcp.TextResourceContents{
+			URI:      request.Params.URI,
+			MIMEType: "application/json",
+			Text:     string(jsonData),
+		},
+	}, nil
+}

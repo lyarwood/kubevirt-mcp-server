@@ -28,8 +28,21 @@ The project is organized into modular packages:
 ### MCP Resources
 - `kubevirt://{namespace}/vms` - JSON list of VMs with summary info
 - `kubevirt://{namespace}/vm/{name}` - Complete VM specification
+- `kubevirt://{namespace}/vm/{name}/status` - VM status and phase information
+- `kubevirt://{namespace}/vm/{name}/console` - VM console connection details
 - `kubevirt://{namespace}/vmis` - JSON list of VMIs with runtime info
 - `kubevirt://{namespace}/vmi/{name}` - Complete VMI specification
+- `kubevirt://{namespace}/vmi/{name}/guestosinfo` - VMI guest OS information
+- `kubevirt://{namespace}/vmi/{name}/filesystems` - VMI filesystem information
+- `kubevirt://{namespace}/vmi/{name}/userlist` - VMI user list information
+- `kubevirt://{namespace}/datavolumes` - JSON list of DataVolumes with source and storage info
+- `kubevirt://{namespace}/datavolume/{name}` - Complete DataVolume specification
+- `kubevirt://{namespace}/instancetypes` - Namespaced instance types
+- `kubevirt://{namespace}/preferences` - Namespaced VM preferences
+- `kubevirt://cluster/instancetypes` - Cluster-wide instance types
+- `kubevirt://cluster/preferences` - Cluster-wide VM preferences
+- `kubevirt://cluster/instancetype/{name}` - Specific cluster instance type
+- `kubevirt://cluster/preference/{name}` - Specific cluster preference
 
 ## Building
 

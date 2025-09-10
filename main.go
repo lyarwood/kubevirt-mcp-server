@@ -258,6 +258,106 @@ func main() {
 		resources.VmGetStatus,
 	)
 
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vmi/{name}/guestosinfo",
+			"VMI Guest OS Info",
+			mcp.WithTemplateDescription("Virtual machine instance guest operating system information"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.VmiGetGuestOSInfo,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vmi/{name}/filesystems",
+			"VMI Filesystems",
+			mcp.WithTemplateDescription("Virtual machine instance filesystem information"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.VmiGetFilesystems,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vmi/{name}/userlist",
+			"VMI User List",
+			mcp.WithTemplateDescription("Virtual machine instance user list information"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.VmiGetUserList,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vm/{name}/console",
+			"VM Console",
+			mcp.WithTemplateDescription("Virtual machine console connection details"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.VmGetConsole,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/instancetypes",
+			"Instance Types",
+			mcp.WithTemplateDescription("List of instance types in a namespace"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.InstancetypesList,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/preferences",
+			"Preferences",
+			mcp.WithTemplateDescription("List of VM preferences in a namespace"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.PreferencesList,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://cluster/instancetypes",
+			"Cluster Instance Types",
+			mcp.WithTemplateDescription("List of cluster-wide instance types"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.ClusterInstancetypesList,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://cluster/preferences",
+			"Cluster Preferences",
+			mcp.WithTemplateDescription("List of cluster-wide VM preferences"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.ClusterPreferencesList,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://cluster/instancetype/{name}",
+			"Cluster Instance Type",
+			mcp.WithTemplateDescription("Individual cluster instance type specification"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.ClusterInstancetypeGet,
+	)
+
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://cluster/preference/{name}",
+			"Cluster Preference",
+			mcp.WithTemplateDescription("Individual cluster preference specification"),
+			mcp.WithTemplateMIMEType("application/json"),
+		),
+		resources.ClusterPreferenceGet,
+	)
+
 	// TODO prompt
 	// describe virtual machine ?
 

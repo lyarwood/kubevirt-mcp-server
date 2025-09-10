@@ -24,16 +24,16 @@ This document tracks potential improvements and future features for the KubeVirt
 - [x] `kubevirt://{namespace}/datavolumes` - List DataVolumes
 - [x] `kubevirt://{namespace}/datavolume/{name}` - Get specific DataVolume
 - [x] `kubevirt://{namespace}/vm/{name}/status` - Get VM status and phase
-- [ ] `kubevirt://{namespace}/vmi/{name}/guestosinfo` - Get guest OS info
-- [ ] `kubevirt://{namespace}/vmi/{name}/filesystems` - Get filesystem info
-- [ ] `kubevirt://{namespace}/vmi/{name}/userlist` - Get user list
-- [ ] `kubevirt://{namespace}/vm/{name}/console` - Get console connection details
-- [ ] `kubevirt://{namespace}/instancetypes` - List namespaced instance types
-- [ ] `kubevirt://{namespace}/preferences` - List namespaced VM preferences
-- [ ] `kubevirt://cluster/instancetypes` - List cluster-wide instance types
-- [ ] `kubevirt://cluster/preferences` - List cluster-wide VM preferences
-- [ ] `kubevirt://cluster/instancetype/{name}` - Get specific cluster instance type
-- [ ] `kubevirt://cluster/preference/{name}` - Get specific cluster preference
+- [x] `kubevirt://{namespace}/vmi/{name}/guestosinfo` - Get guest OS info
+- [x] `kubevirt://{namespace}/vmi/{name}/filesystems` - Get filesystem info
+- [x] `kubevirt://{namespace}/vmi/{name}/userlist` - Get user list
+- [x] `kubevirt://{namespace}/vm/{name}/console` - Get console connection details
+- [x] `kubevirt://{namespace}/instancetypes` - List namespaced instance types
+- [x] `kubevirt://{namespace}/preferences` - List namespaced VM preferences
+- [x] `kubevirt://cluster/instancetypes` - List cluster-wide instance types
+- [x] `kubevirt://cluster/preferences` - List cluster-wide VM preferences
+- [x] `kubevirt://cluster/instancetype/{name}` - Get specific cluster instance type
+- [x] `kubevirt://cluster/preference/{name}` - Get specific cluster preference
 
 ### Core Functionality
 - [x] Add VM restart functionality to MCP tools
