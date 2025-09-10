@@ -138,73 +138,73 @@ func main() {
 		tools.VmCreate,
 	)
 
-	// Add MCP Resources
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/vms",
+	// Add MCP Resource Templates
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vms",
 			"Virtual Machines",
-			mcp.WithResourceDescription("List of virtual machines in a namespace"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("List of virtual machines in a namespace"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.VmsList,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/vm/*",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vm/{name}",
 			"Virtual Machine",
-			mcp.WithResourceDescription("Individual virtual machine details"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("Individual virtual machine details"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.VmGet,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/vmis",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vmis",
 			"Virtual Machine Instances",
-			mcp.WithResourceDescription("List of virtual machine instances in a namespace"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("List of virtual machine instances in a namespace"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.VmisList,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/vmi/*",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vmi/{name}",
 			"Virtual Machine Instance",
-			mcp.WithResourceDescription("Individual virtual machine instance details"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("Individual virtual machine instance details"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.VmiGet,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/datavolumes",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/datavolumes",
 			"Data Volumes",
-			mcp.WithResourceDescription("List of data volumes with source and storage information"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("List of data volumes with source and storage information"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.DataVolumesList,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/datavolume/*",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/datavolume/{name}",
 			"Data Volume",
-			mcp.WithResourceDescription("Individual data volume specification"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("Individual data volume specification"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.DataVolumeGet,
 	)
 
-	s.AddResource(
-		mcp.NewResource(
-			"kubevirt://*/vm/*/status",
+	s.AddResourceTemplate(
+		mcp.NewResourceTemplate(
+			"kubevirt://{namespace}/vm/{name}/status",
 			"VM Status",
-			mcp.WithResourceDescription("Virtual machine status and phase information"),
-			mcp.WithMIMEType("application/json"),
+			mcp.WithTemplateDescription("Virtual machine status and phase information"),
+			mcp.WithTemplateMIMEType("application/json"),
 		),
 		resources.VmGetStatus,
 	)
