@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/container"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/containerdisks"
 	"github.com/mark3labs/mcp-go/mcp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -33,7 +33,7 @@ func Create(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 	}
 
 	// Resolve the container disk image (handles OS names like "fedora", "ubuntu", etc.)
-	containerDisk := container.ResolveContainerDisk(containerDiskInput)
+	containerDisk := containerdisks.ResolveContainerDisk(containerDiskInput)
 
 	vm := &virtv1.VirtualMachine{
 		ObjectMeta: metav1.ObjectMeta{
