@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/prompts"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/instancetype"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/preference"
@@ -18,6 +19,7 @@ func main() {
 		"kubevirt MCP server demo 🚀",
 		"0.0.1",
 		server.WithResourceCapabilities(true, true),
+		server.WithPromptCapabilities(true),
 		server.WithLogging(),
 	)
 
@@ -451,8 +453,64 @@ func main() {
 		resources.ClusterPreferenceGet,
 	)
 
-	// TODO prompt
-	// describe virtual machine ?
+	// Add MCP Prompts
+	s.AddPrompt(
+		mcp.NewPrompt(
+			"describe_vm",
+			mcp.WithPromptDescription("Provide a comprehensive description of a virtual machine including its configuration, status, and operational details"),
+			mcp.WithArgument(
+				"namespace",
+				mcp.ArgumentDescription("The namespace containing the virtual machine"),
+				mcp.RequiredArgument(),
+			),
+			mcp.WithArgument(
+				"name",
+				mcp.ArgumentDescription("The name of the virtual machine to describe"),
+				mcp.RequiredArgument(),
+			),
+		),
+		prompts.DescribeVM,
+	)
+
+	s.AddPrompt(
+		mcp.NewPrompt(
+			"troubleshoot_vm",
+			mcp.WithPromptDescription("Diagnose and analyze potential issues with a virtual machine, providing actionable recommendations"),
+			mcp.WithArgument(
+				"namespace",
+				mcp.ArgumentDescription("The namespace containing the virtual machine"),
+				mcp.RequiredArgument(),
+			),
+			mcp.WithArgument(
+				"name",
+				mcp.ArgumentDescription("The name of the virtual machine to troubleshoot"),
+				mcp.RequiredArgument(),
+			),
+			mcp.WithArgument(
+				"issue_description",
+				mcp.ArgumentDescription("Optional description of the specific issue being experienced"),
+			),
+		),
+		prompts.TroubleshootVM,
+	)
+
+	s.AddPrompt(
+		mcp.NewPrompt(
+			"health_check_vm",
+			mcp.WithPromptDescription("Perform a quick health check on a virtual machine and report any issues"),
+			mcp.WithArgument(
+				"namespace",
+				mcp.ArgumentDescription("The namespace containing the virtual machine"),
+				mcp.RequiredArgument(),
+			),
+			mcp.WithArgument(
+				"name",
+				mcp.ArgumentDescription("The name of the virtual machine to check"),
+				mcp.RequiredArgument(),
+			),
+		),
+		prompts.HealthCheckVM,
+	)
 
 	// Start the stdio server
 	if err := server.ServeStdio(s); err != nil {
