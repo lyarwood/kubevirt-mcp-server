@@ -188,6 +188,26 @@ func main() {
 
 	s.AddTool(
 		mcp.NewTool(
+			"patch_vm",
+			mcp.WithDescription("apply a JSON merge patch to modify a virtual machine configuration"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"patch",
+				mcp.Description("JSON merge patch data to apply to the VM (e.g., network interface modifications, resource updates)"),
+				mcp.Required()),
+		),
+		vm.Patch,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
 			"create_vm",
 			mcp.WithDescription("create a virtual machine with the given name, container disk image (supports OS names like 'fedora', 'ubuntu'), and optional instancetype and preference"),
 			mcp.WithString(

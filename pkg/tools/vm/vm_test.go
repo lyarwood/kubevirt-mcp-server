@@ -663,4 +663,91 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("Patch", func() {
+		Context("when called with valid arguments", func() {
+			It("should accept valid namespace, name, and patch parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+					"patch":     `{"metadata":{"labels":{"test":"label"}}}`,
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Patch(ctx, request)
+
+				// We expect either no error (if mocked) or error at client creation stage
+				if err != nil {
+					Expect(result.IsError).To(BeTrue())
+					// Should not contain argument parsing errors
+					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+					// Should not contain JSON validation errors for valid JSON
+					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("invalid JSON"))
+				} else {
+					// If no error, the function succeeded in parsing arguments
+					Expect(result.IsError).To(BeFalse())
+				}
+			})
+		})
+
+		Context("when called with invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name":  "test-vm",
+					"patch": `{"metadata":{"labels":{"test":"label"}}}`,
+				}
+
+				result, err := vm.Patch(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"patch":     `{"metadata":{"labels":{"test":"label"}}}`,
+				}
+
+				result, err := vm.Patch(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+
+			It("should return an error for missing patch", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+				}
+
+				result, err := vm.Patch(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("patch parameter required"))
+			})
+
+			It("should return an error for invalid JSON patch", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+					"patch":     `{invalid json}`,
+				}
+
+				result, err := vm.Patch(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("invalid JSON in patch parameter"))
+			})
+		})
+	})
 })
