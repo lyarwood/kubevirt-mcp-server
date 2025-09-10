@@ -7,10 +7,10 @@ This document tracks potential improvements and future features for the KubeVirt
 ### MCP Tools & Resources (Based on KubeVirt API Analysis)
 
 #### New MCP Tools
-- [ ] `delete_vm` - Delete a virtual machine
+- [x] `delete_vm` - Delete a virtual machine
 - [ ] `update_vm` - Update VM configuration (memory, CPU, etc.)
-- [ ] `pause_vm` - Pause a running VM
-- [ ] `unpause_vm` - Unpause a paused VM
+- [x] `pause_vm` - Pause a running VM
+- [x] `unpause_vm` - Unpause a paused VM
 - [ ] `addvolume_vm` - Add volume to VM
 - [ ] `removevolume_vm` - Remove volume from VM
 - [ ] `migrate_vm` - Migrate VM to different node
@@ -41,9 +41,9 @@ This document tracks potential improvements and future features for the KubeVirt
 - [ ] Add VM status filtering in resource handlers (running, stopped, etc.)
 - [ ] Add label-based filtering for VM and VMI resources
 - [ ] Implement VM cloning/template functionality
-- [ ] Add VM deletion tool (delete_vm)
+- [x] Add VM deletion tool (delete_vm)
 - [ ] Add VM update/modification tool (update_vm)
-- [ ] Implement VM pause/unpause functionality
+- [x] Implement VM pause/unpause functionality
 - [ ] Add VM addvolume/removevolume tools for disk management
 
 ### Error Handling & Validation

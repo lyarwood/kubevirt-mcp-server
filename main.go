@@ -139,6 +139,54 @@ func main() {
 		vm.Create,
 	)
 
+	s.AddTool(
+		mcp.NewTool(
+			"delete_vm",
+			mcp.WithDescription("delete the virtual machine with a given name in the provided namespace"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.Delete,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"pause_vm",
+			mcp.WithDescription("pause the virtual machine with a given name in the provided namespace"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.Pause,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"unpause_vm",
+			mcp.WithDescription("unpause the virtual machine with a given name in the provided namespace"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.Unpause,
+	)
+
 	// Add MCP Resource Templates
 	s.AddResourceTemplate(
 		mcp.NewResourceTemplate(
