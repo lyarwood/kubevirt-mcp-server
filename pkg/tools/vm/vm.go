@@ -1,10 +1,10 @@
-package tools
+package vm
 
 import (
 	"context"
 	"fmt"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"strings"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/container"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +26,7 @@ func newToolResultErr(err error) (*mcp.CallToolResult, error) {
 	}, err
 }
 
-func VmsList(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func List(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -56,7 +56,7 @@ func VmsList(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRes
 	}, nil
 }
 
-func VmStart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Start(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -88,7 +88,7 @@ func VmStart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRes
 	}, nil
 }
 
-func VmStop(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Stop(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -120,33 +120,7 @@ func VmStop(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 	}, nil
 }
 
-func InstancetypesList(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	virtClient, err := client.GetKubevirtClient()
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	instancetypes, err := virtClient.VirtualMachineClusterInstancetype().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	names := ""
-	for _, instancetype := range instancetypes.Items {
-		names += fmt.Sprintf("%s\n", instancetype.Name)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: names,
-			},
-		},
-	}, nil
-}
-
-func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Restart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -205,7 +179,7 @@ func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 	}, nil
 }
 
-func VmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func GetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -239,41 +213,7 @@ func VmGetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.C
 	}, nil
 }
 
-// ResolveContainerDisk resolves OS names to container disk images from quay.io/containerdisks
-func ResolveContainerDisk(input string) string {
-	// If input already looks like a container image, return as-is
-	if strings.Contains(input, "/") || strings.Contains(input, ":") {
-		return input
-	}
-
-	// Common OS name mappings to containerdisk images
-	osMap := map[string]string{
-		"fedora":   "quay.io/containerdisks/fedora:latest",
-		"ubuntu":   "quay.io/containerdisks/ubuntu:latest",
-		"centos":   "quay.io/containerdisks/centos:latest",
-		"debian":   "quay.io/containerdisks/debian:latest",
-		"rhel":     "quay.io/containerdisks/rhel:latest",
-		"opensuse": "quay.io/containerdisks/opensuse:latest",
-		"alpine":   "quay.io/containerdisks/alpine:latest",
-		"cirros":   "quay.io/kubevirt/cirros-container-disk-demo",
-		"windows":  "quay.io/containerdisks/windows:latest",
-		"freebsd":  "quay.io/containerdisks/freebsd:latest",
-	}
-
-	// Normalize input to lowercase for lookup
-	normalized := strings.ToLower(strings.TrimSpace(input))
-
-	// Look up the OS name
-	if containerDisk, exists := osMap[normalized]; exists {
-		return containerDisk
-	}
-
-	// If no match found, assume it's already a valid container disk name
-	// and try to construct a containerdisks URL
-	return fmt.Sprintf("quay.io/containerdisks/%s:latest", normalized)
-}
-
-func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+func Create(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return newToolResultErr(err)
@@ -293,7 +233,7 @@ func VmCreate(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 
 	// Resolve the container disk image (handles OS names like "fedora", "ubuntu", etc.)
-	containerDisk := ResolveContainerDisk(containerDiskInput)
+	containerDisk := container.ResolveContainerDisk(containerDiskInput)
 
 	vm := &virtv1.VirtualMachine{
 		ObjectMeta: metav1.ObjectMeta{

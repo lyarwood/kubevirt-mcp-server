@@ -1,4 +1,4 @@
-package tools_test
+package vm_test
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/vm"
 )
 
-var _ = Describe("Tools", func() {
+var _ = Describe("VM", func() {
 	var (
 		ctx context.Context
 	)
@@ -19,13 +19,13 @@ var _ = Describe("Tools", func() {
 		ctx = context.Background()
 	})
 
-	Describe("VmsList", func() {
+	Describe("List", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
 				request.Params.Arguments = map[string]interface{}{}
 
-				result, err := tools.VmsList(ctx, request)
+				result, err := vm.List(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -38,7 +38,7 @@ var _ = Describe("Tools", func() {
 					"namespace": 123,
 				}
 
-				result, err := tools.VmsList(ctx, request)
+				result, err := vm.List(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -47,7 +47,7 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
-	Describe("VmStart", func() {
+	Describe("Start", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
@@ -55,7 +55,7 @@ var _ = Describe("Tools", func() {
 					"name": "test-vm",
 				}
 
-				result, err := tools.VmStart(ctx, request)
+				result, err := vm.Start(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -68,7 +68,7 @@ var _ = Describe("Tools", func() {
 					"namespace": "test-ns",
 				}
 
-				result, err := tools.VmStart(ctx, request)
+				result, err := vm.Start(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -77,7 +77,7 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
-	Describe("VmStop", func() {
+	Describe("Stop", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
@@ -85,7 +85,7 @@ var _ = Describe("Tools", func() {
 					"name": "test-vm",
 				}
 
-				result, err := tools.VmStop(ctx, request)
+				result, err := vm.Stop(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -98,7 +98,7 @@ var _ = Describe("Tools", func() {
 					"namespace": "test-ns",
 				}
 
-				result, err := tools.VmStop(ctx, request)
+				result, err := vm.Stop(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -107,7 +107,7 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
-	Describe("VmRestart", func() {
+	Describe("Restart", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
@@ -115,7 +115,7 @@ var _ = Describe("Tools", func() {
 					"name": "test-vm",
 				}
 
-				result, err := tools.VmRestart(ctx, request)
+				result, err := vm.Restart(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -128,7 +128,7 @@ var _ = Describe("Tools", func() {
 					"namespace": "test-ns",
 				}
 
-				result, err := tools.VmRestart(ctx, request)
+				result, err := vm.Restart(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -137,7 +137,7 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
-	Describe("VmGetInstancetype", func() {
+	Describe("GetInstancetype", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
@@ -145,7 +145,7 @@ var _ = Describe("Tools", func() {
 					"name": "test-vm",
 				}
 
-				result, err := tools.VmGetInstancetype(ctx, request)
+				result, err := vm.GetInstancetype(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -158,7 +158,7 @@ var _ = Describe("Tools", func() {
 					"namespace": "test-ns",
 				}
 
-				result, err := tools.VmGetInstancetype(ctx, request)
+				result, err := vm.GetInstancetype(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -167,29 +167,7 @@ var _ = Describe("Tools", func() {
 		})
 	})
 
-	Describe("InstancetypesList", func() {
-		Context("when called with valid request", func() {
-			It("should accept empty arguments", func() {
-				request := mcp.CallToolRequest{}
-				request.Params.Arguments = map[string]interface{}{}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
-				result, err := tools.InstancetypesList(ctx, request)
-
-				// We expect either no error (if mocked) or error at client creation stage
-				if err != nil {
-					Expect(result.IsError).To(BeTrue())
-					// Should not contain argument parsing errors
-					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("unable to decode"))
-				} else {
-					// If no error, the function succeeded in parsing arguments
-					Expect(result.IsError).To(BeFalse())
-				}
-			})
-		})
-	})
-
-	Describe("VmCreate", func() {
+	Describe("Create", func() {
 		Context("when given invalid arguments", func() {
 			It("should return an error for missing namespace", func() {
 				request := mcp.CallToolRequest{}
@@ -198,7 +176,7 @@ var _ = Describe("Tools", func() {
 					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
 				}
 
-				result, err := tools.VmCreate(ctx, request)
+				result, err := vm.Create(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -212,7 +190,7 @@ var _ = Describe("Tools", func() {
 					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
 				}
 
-				result, err := tools.VmCreate(ctx, request)
+				result, err := vm.Create(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
@@ -226,13 +204,12 @@ var _ = Describe("Tools", func() {
 					"name":      "test-vm",
 				}
 
-				result, err := tools.VmCreate(ctx, request)
+				result, err := vm.Create(ctx, request)
 
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("container_disk parameter required"))
 			})
-
 		})
 
 		Context("when given valid arguments", func() {
@@ -245,13 +222,13 @@ var _ = Describe("Tools", func() {
 				}
 
 				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
-				result, err := tools.VmCreate(ctx, request)
+				result, err := vm.Create(ctx, request)
 
-				// We expect it to fail at the client creation stage, not argument parsing
+				// We expect error at client creation stage, not argument parsing
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				// Should not contain argument parsing errors
-				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("unable to decode"))
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 
 			It("should accept optional instancetype and preference arguments", func() {
@@ -260,84 +237,18 @@ var _ = Describe("Tools", func() {
 					"namespace":      "test-ns",
 					"name":           "test-vm",
 					"container_disk": "quay.io/kubevirt/cirros-container-disk-demo",
-					"instancetype":   "small",
+					"instancetype":   "u1.medium",
 					"preference":     "fedora",
 				}
 
 				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
-				result, err := tools.VmCreate(ctx, request)
+				result, err := vm.Create(ctx, request)
 
-				// We expect it to fail at the client creation stage, not argument parsing
+				// We expect error at client creation stage, not argument parsing
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				// Should not contain argument parsing errors
-				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("unable to decode"))
-			})
-		})
-	})
-
-	Describe("ResolveContainerDisk", func() {
-		Context("when given OS names", func() {
-			It("should resolve fedora to containerdisks fedora image", func() {
-				result := tools.ResolveContainerDisk("fedora")
-				Expect(result).To(Equal("quay.io/containerdisks/fedora:latest"))
-			})
-
-			It("should resolve ubuntu to containerdisks ubuntu image", func() {
-				result := tools.ResolveContainerDisk("ubuntu")
-				Expect(result).To(Equal("quay.io/containerdisks/ubuntu:latest"))
-			})
-
-			It("should resolve centos to containerdisks centos image", func() {
-				result := tools.ResolveContainerDisk("centos")
-				Expect(result).To(Equal("quay.io/containerdisks/centos:latest"))
-			})
-
-			It("should resolve cirros to kubevirt demo image", func() {
-				result := tools.ResolveContainerDisk("cirros")
-				Expect(result).To(Equal("quay.io/kubevirt/cirros-container-disk-demo"))
-			})
-
-			It("should handle case insensitive input", func() {
-				result := tools.ResolveContainerDisk("FEDORA")
-				Expect(result).To(Equal("quay.io/containerdisks/fedora:latest"))
-			})
-
-			It("should handle input with extra whitespace", func() {
-				result := tools.ResolveContainerDisk("  ubuntu  ")
-				Expect(result).To(Equal("quay.io/containerdisks/ubuntu:latest"))
-			})
-		})
-
-		Context("when given container image names", func() {
-			It("should return full container image URLs as-is", func() {
-				input := "quay.io/containerdisks/fedora:38"
-				result := tools.ResolveContainerDisk(input)
-				Expect(result).To(Equal(input))
-			})
-
-			It("should return images with tags as-is", func() {
-				input := "my-registry/my-image:v1.0"
-				result := tools.ResolveContainerDisk(input)
-				Expect(result).To(Equal(input))
-			})
-
-			It("should return images with slashes as-is", func() {
-				input := "docker.io/library/ubuntu"
-				result := tools.ResolveContainerDisk(input)
-				Expect(result).To(Equal(input))
-			})
-		})
-
-		Context("when given unknown OS names", func() {
-			It("should construct containerdisks URL for unknown OS", func() {
-				result := tools.ResolveContainerDisk("myos")
-				Expect(result).To(Equal("quay.io/containerdisks/myos:latest"))
-			})
-
-			It("should handle unknown OS with case normalization", func() {
-				result := tools.ResolveContainerDisk("MyCustomOS")
-				Expect(result).To(Equal("quay.io/containerdisks/mycustomos:latest"))
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
 	})

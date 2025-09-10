@@ -26,15 +26,15 @@ clean:
 	go clean
 	@echo "Clean complete!"
 
-# Run tests
+# Run unit tests only
 test:
-	@echo "Running tests with Ginkgo..."
-	ginkgo -r --randomize-all --randomize-suites --fail-on-pending --cover --trace -v
+	@echo "Running unit tests with Ginkgo..."
+	ginkgo --randomize-all --randomize-suites --fail-on-pending --cover --trace -v pkg/...
 
-# Generate test coverage report
+# Generate test coverage report for unit tests
 coverage:
-	@echo "Generating test coverage report..."
-	ginkgo -r --randomize-all --randomize-suites --fail-on-pending --cover --trace --coverprofile=coverage.out
+	@echo "Generating test coverage report for unit tests..."
+	ginkgo --randomize-all --randomize-suites --fail-on-pending --cover --trace --coverprofile=coverage.out pkg/...
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 

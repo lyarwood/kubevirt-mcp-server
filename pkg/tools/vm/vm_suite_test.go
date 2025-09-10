@@ -1,4 +1,4 @@
-package tools_test
+package vm_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestTools(t *testing.T) {
+func TestVM(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Tools Suite")
+	RunSpecs(t, "VM Suite")
 }

@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/instancetype"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/vm"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -37,7 +38,7 @@ func main() {
 				mcp.Description("The namespace of the virtual machine"),
 				mcp.Required()),
 		),
-		tools.VmsList,
+		vm.List,
 	)
 
 	s.AddTool(
@@ -53,7 +54,7 @@ func main() {
 				mcp.Description("The Name of the virtual machine"),
 				mcp.Required()),
 		),
-		tools.VmStart,
+		vm.Start,
 	)
 
 	s.AddTool(
@@ -69,7 +70,7 @@ func main() {
 				mcp.Description("The name of the virtual machine"),
 				mcp.Required()),
 		),
-		tools.VmStop,
+		vm.Stop,
 	)
 
 	s.AddTool(
@@ -85,7 +86,7 @@ func main() {
 				mcp.Description("The name of the virtual machine"),
 				mcp.Required()),
 		),
-		tools.VmRestart,
+		vm.Restart,
 	)
 
 	s.AddTool(
@@ -93,7 +94,7 @@ func main() {
 			"list_instancetypes",
 			mcp.WithDescription("list the name of all instance types"),
 		),
-		tools.InstancetypesList,
+		instancetype.List,
 	)
 
 	s.AddTool(
@@ -109,7 +110,7 @@ func main() {
 				mcp.Description("The name of the virtual machine"),
 				mcp.Required()),
 		),
-		tools.VmGetInstancetype,
+		vm.GetInstancetype,
 	)
 
 	s.AddTool(
@@ -135,7 +136,7 @@ func main() {
 				"preference",
 				mcp.Description("Optional preference name")),
 		),
-		tools.VmCreate,
+		vm.Create,
 	)
 
 	// Add MCP Resource Templates
