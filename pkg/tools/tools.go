@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	virtv1 "kubevirt.io/api/core/v1"
 )
 
@@ -70,15 +71,9 @@ func VmStart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRes
 		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	s := virtv1.RunStrategyAlways
-	vm.Spec.RunStrategy = &s
-
-	_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+	// Use JSON patch to update RunStrategy to avoid conflicts
+	patchData := []byte(`[{"op": "replace", "path": "/spec/runStrategy", "value": "Always"}]`)
+	_, err = virtClient.VirtualMachine(namespace).Patch(ctx, name, types.JSONPatchType, patchData, metav1.PatchOptions{})
 	if err != nil {
 		return newToolResultErr(err)
 	}
@@ -108,15 +103,9 @@ func VmStop(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	s := virtv1.RunStrategyHalted
-	vm.Spec.RunStrategy = &s
-
-	_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+	// Use JSON patch to update RunStrategy to avoid conflicts
+	patchData := []byte(`[{"op": "replace", "path": "/spec/runStrategy", "value": "Halted"}]`)
+	_, err = virtClient.VirtualMachine(namespace).Patch(ctx, name, types.JSONPatchType, patchData, metav1.PatchOptions{})
 	if err != nil {
 		return newToolResultErr(err)
 	}
@@ -172,19 +161,13 @@ func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
 	}
 
-	// Get the VM to check its current state
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
 	// Check if VM has a running VMI
 	_, err = virtClient.VirtualMachineInstance(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		// If VMI doesn't exist, just start the VM
-		s := virtv1.RunStrategyAlways
-		vm.Spec.RunStrategy = &s
-		_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+		// Use JSON patch to update RunStrategy to avoid conflicts
+		patchData := []byte(`[{"op": "replace", "path": "/spec/runStrategy", "value": "Always"}]`)
+		_, err = virtClient.VirtualMachine(namespace).Patch(ctx, name, types.JSONPatchType, patchData, metav1.PatchOptions{})
 		if err != nil {
 			return newToolResultErr(err)
 		}
@@ -205,9 +188,9 @@ func VmRestart(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 	}
 
 	// Ensure VM is set to restart by setting RunStrategy to Always
-	s := virtv1.RunStrategyAlways
-	vm.Spec.RunStrategy = &s
-	_, err = virtClient.VirtualMachine(namespace).Update(ctx, vm, metav1.UpdateOptions{})
+	// Use JSON patch to update RunStrategy to avoid conflicts
+	patchData := []byte(`[{"op": "replace", "path": "/spec/runStrategy", "value": "Always"}]`)
+	_, err = virtClient.VirtualMachine(namespace).Patch(ctx, name, types.JSONPatchType, patchData, metav1.PatchOptions{})
 	if err != nil {
 		return newToolResultErr(err)
 	}

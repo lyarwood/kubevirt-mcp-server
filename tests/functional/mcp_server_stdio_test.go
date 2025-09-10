@@ -433,16 +433,6 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 
 			response, err := mcpServer.SendRequest(stopVMRequest)
 			Expect(err).NotTo(HaveOccurred(), "Should receive stop_vm response")
-			// Allow for Kubernetes conflicts which can happen in test environments
-			if response.Error != nil {
-				errorMap, ok := response.Error.(map[string]interface{})
-				if ok {
-					message, ok := errorMap["message"].(string)
-					if ok && strings.Contains(message, "the object has been modified") {
-						Skip("Skipping due to Kubernetes resource conflict in test environment")
-					}
-				}
-			}
 			Expect(response.Error).To(BeNil(), "stop_vm should not return error")
 
 			// Verify the VM was stopped
@@ -493,16 +483,6 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 
 			response, err := mcpServer.SendRequest(restartVMRequest)
 			Expect(err).NotTo(HaveOccurred(), "Should receive restart_vm response")
-			// Allow for Kubernetes conflicts which can happen in test environments
-			if response.Error != nil {
-				errorMap, ok := response.Error.(map[string]interface{})
-				if ok {
-					message, ok := errorMap["message"].(string)
-					if ok && strings.Contains(message, "the object has been modified") {
-						Skip("Skipping due to Kubernetes resource conflict in test environment")
-					}
-				}
-			}
 			Expect(response.Error).To(BeNil(), "restart_vm should not return error")
 
 			// Verify the VM is running after restart
