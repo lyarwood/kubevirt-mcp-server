@@ -5,6 +5,7 @@ import (
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/instancetype"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/preference"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/vm"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -95,6 +96,30 @@ func main() {
 			mcp.WithDescription("list the name of all instance types"),
 		),
 		instancetype.List,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_instancetype",
+			mcp.WithDescription("get detailed information about a specific instance type including CPU, memory, annotations and labels"),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the instance type"),
+				mcp.Required()),
+		),
+		instancetype.Get,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_preference",
+			mcp.WithDescription("get detailed information about a specific preference including settings, annotations and labels"),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the preference"),
+				mcp.Required()),
+		),
+		preference.Get,
 	)
 
 	s.AddTool(

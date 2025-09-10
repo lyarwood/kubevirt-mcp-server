@@ -1,4 +1,4 @@
-package instancetype
+package preference
 
 import (
 	"context"
@@ -22,32 +22,6 @@ func newToolResultErr(err error) (*mcp.CallToolResult, error) {
 	}, err
 }
 
-func List(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	virtClient, err := client.GetKubevirtClient()
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	instancetypes, err := virtClient.VirtualMachineClusterInstancetype().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	names := ""
-	for _, instancetype := range instancetypes.Items {
-		names += fmt.Sprintf("%s\n", instancetype.Name)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: names,
-			},
-		},
-	}, nil
-}
-
 func Get(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	name, err := request.RequireString("name")
 	if err != nil {
@@ -59,16 +33,16 @@ func Get(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult,
 		return newToolResultErr(err)
 	}
 
-	instancetype, err := virtClient.VirtualMachineClusterInstancetype().Get(ctx, name, metav1.GetOptions{})
+	preference, err := virtClient.VirtualMachineClusterPreference().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return newToolResultErr(err)
 	}
 
 	result := map[string]interface{}{
-		"name":        instancetype.Name,
-		"labels":      instancetype.Labels,
-		"annotations": instancetype.Annotations,
-		"spec":        instancetype.Spec,
+		"name":        preference.Name,
+		"labels":      preference.Labels,
+		"annotations": preference.Annotations,
+		"spec":        preference.Spec,
 	}
 
 	resultJSON, err := json.MarshalIndent(result, "", "  ")
