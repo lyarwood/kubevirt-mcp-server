@@ -140,6 +140,54 @@ func main() {
 
 	s.AddTool(
 		mcp.NewTool(
+			"get_vm_status",
+			mcp.WithDescription("get comprehensive status information for a virtual machine including ready state, generation, and state change requests"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.GetStatus,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_vm_conditions",
+			mcp.WithDescription("get detailed condition information for a virtual machine including health checks and operational state"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.GetConditions,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
+			"get_vm_phase",
+			mcp.WithDescription("get current phase and basic status information for a virtual machine"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.GetPhase,
+	)
+
+	s.AddTool(
+		mcp.NewTool(
 			"create_vm",
 			mcp.WithDescription("create a virtual machine with the given name, container disk image (supports OS names like 'fedora', 'ubuntu'), and optional instancetype and preference"),
 			mcp.WithString(

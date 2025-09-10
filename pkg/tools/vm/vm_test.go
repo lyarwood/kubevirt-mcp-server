@@ -504,4 +504,163 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("GetStatus", func() {
+		Context("when called with valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.GetStatus(ctx, request)
+
+				// We expect either no error (if mocked) or error at client creation stage
+				if err != nil {
+					Expect(result.IsError).To(BeTrue())
+					// Should not contain argument parsing errors
+					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+				} else {
+					// If no error, the function succeeded in parsing arguments
+					Expect(result.IsError).To(BeFalse())
+				}
+			})
+		})
+
+		Context("when called with invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name": "test-vm",
+				}
+
+				result, err := vm.GetStatus(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+				}
+
+				result, err := vm.GetStatus(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+	})
+
+	Describe("GetConditions", func() {
+		Context("when called with valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.GetConditions(ctx, request)
+
+				// We expect either no error (if mocked) or error at client creation stage
+				if err != nil {
+					Expect(result.IsError).To(BeTrue())
+					// Should not contain argument parsing errors
+					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+				} else {
+					// If no error, the function succeeded in parsing arguments
+					Expect(result.IsError).To(BeFalse())
+				}
+			})
+		})
+
+		Context("when called with invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name": "test-vm",
+				}
+
+				result, err := vm.GetConditions(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+				}
+
+				result, err := vm.GetConditions(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+	})
+
+	Describe("GetPhase", func() {
+		Context("when called with valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.GetPhase(ctx, request)
+
+				// We expect either no error (if mocked) or error at client creation stage
+				if err != nil {
+					Expect(result.IsError).To(BeTrue())
+					// Should not contain argument parsing errors
+					Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+				} else {
+					// If no error, the function succeeded in parsing arguments
+					Expect(result.IsError).To(BeFalse())
+				}
+			})
+		})
+
+		Context("when called with invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name": "test-vm",
+				}
+
+				result, err := vm.GetPhase(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "default",
+				}
+
+				result, err := vm.GetPhase(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+	})
 })
