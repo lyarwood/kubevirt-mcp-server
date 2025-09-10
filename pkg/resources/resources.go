@@ -530,7 +530,7 @@ func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.R
 	if vmi.Status.Phase == "Running" {
 		// These are the typical console types available in KubeVirt
 		consoles = append(consoles, "vnc", "serial")
-		
+
 		// Check if guest agent is available
 		for _, condition := range vmi.Status.Conditions {
 			if condition.Type == "AgentConnected" && condition.Status == "True" {
