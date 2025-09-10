@@ -45,6 +45,23 @@ var _ = Describe("VM", func() {
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
 			})
 		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace parameter", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.List(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
 	})
 
 	Describe("Start", func() {
@@ -73,6 +90,24 @@ var _ = Describe("VM", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Start(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
 	})
@@ -105,6 +140,24 @@ var _ = Describe("VM", func() {
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
 			})
 		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Stop(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
 	})
 
 	Describe("Restart", func() {
@@ -135,6 +188,24 @@ var _ = Describe("VM", func() {
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
 			})
 		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Restart(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
 	})
 
 	Describe("GetInstancetype", func() {
@@ -163,6 +234,24 @@ var _ = Describe("VM", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.GetInstancetype(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
 	})
@@ -251,6 +340,25 @@ var _ = Describe("VM", func() {
 				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
+
+		Context("when given valid arguments with container disk resolution", func() {
+			It("should accept valid arguments and resolve container disk", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace":      "test-namespace",
+					"name":           "test-vm",
+					"container_disk": "fedora",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing and container disk resolution
+				result, err := vm.Create(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
 	})
 
 	Describe("Delete", func() {
@@ -279,6 +387,24 @@ var _ = Describe("VM", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Delete(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
 	})
@@ -311,6 +437,24 @@ var _ = Describe("VM", func() {
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
 			})
 		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Pause(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
 	})
 
 	Describe("Unpause", func() {
@@ -339,6 +483,24 @@ var _ = Describe("VM", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(result.IsError).To(BeTrue())
 				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Unpause(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
 			})
 		})
 	})
