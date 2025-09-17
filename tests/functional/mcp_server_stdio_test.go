@@ -815,6 +815,162 @@ var _ = Describe("MCP Server Stdio Functional Tests", func() {
 		})
 	})
 
+	Context("get_vm_disks tool", func() {
+		var testVM *kubevirtv1.VirtualMachine
+
+		BeforeEach(func() {
+			By("Creating a test VM for disk listing")
+			testVM = &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      fmt.Sprintf("test-vm-disks-%d", time.Now().UnixNano()),
+					Namespace: testNamespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					RunStrategy: &[]kubevirtv1.VirtualMachineRunStrategy{kubevirtv1.RunStrategyHalted}[0],
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{
+								Resources: kubevirtv1.ResourceRequirements{
+									Requests: corev1.ResourceList{
+										corev1.ResourceMemory: resource.MustParse("128Mi"),
+									},
+								},
+								Devices: kubevirtv1.Devices{
+									Disks: []kubevirtv1.Disk{
+										{
+											Name: "containerdisk",
+											DiskDevice: kubevirtv1.DiskDevice{
+												Disk: &kubevirtv1.DiskTarget{Bus: "virtio"},
+											},
+										},
+										{
+											Name: "cloudinitdisk",
+											DiskDevice: kubevirtv1.DiskDevice{
+												Disk: &kubevirtv1.DiskTarget{Bus: "virtio"},
+											},
+										},
+									},
+								},
+							},
+							Volumes: []kubevirtv1.Volume{
+								{
+									Name: "containerdisk",
+									VolumeSource: kubevirtv1.VolumeSource{
+										ContainerDisk: &kubevirtv1.ContainerDiskSource{
+											Image: "quay.io/kubevirt/cirros-container-disk-demo",
+										},
+									},
+								},
+								{
+									Name: "cloudinitdisk",
+									VolumeSource: kubevirtv1.VolumeSource{
+										CloudInitNoCloud: &kubevirtv1.CloudInitNoCloudSource{
+											UserData: "#cloud-config\npassword: fedora\nchpasswd: { expire: False }\n",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			createdVM, err := virtClient.VirtualMachine(testNamespace).Create(context.Background(), testVM, metav1.CreateOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			testVM = createdVM
+		})
+
+		AfterEach(func() {
+			if testVM != nil {
+				By("Cleaning up test VM")
+				err := virtClient.VirtualMachine(testNamespace).Delete(context.Background(), testVM.Name, metav1.DeleteOptions{})
+				if err != nil {
+					GinkgoWriter.Printf("Warning: failed to delete VM %s: %v\n", testVM.Name, err)
+				}
+			}
+		})
+
+		It("should return disks for the VM", func() {
+			By("Starting and initializing MCP server")
+			var err error
+			mcpServer, err = StartMCPServer()
+			Expect(err).NotTo(HaveOccurred())
+
+			req := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "tools/call",
+				Params: map[string]interface{}{
+					"name": "get_vm_disks",
+					"arguments": map[string]interface{}{
+						"namespace": testNamespace,
+						"name":      testVM.Name,
+					},
+				},
+				ID: 2,
+			}
+
+			resp, err := mcpServer.SendRequest(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.Error).To(BeNil())
+
+			result, ok := resp.Result.(map[string]interface{})
+			Expect(ok).To(BeTrue())
+
+			content, ok := result["content"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(content)).To(Equal(1))
+
+			textItem := content[0].(map[string]interface{})
+			text := textItem["text"].(string)
+			Expect(text).To(ContainSubstring("containerdisk"))
+			Expect(text).To(ContainSubstring("cloudinitdisk"))
+		})
+
+		It("should return error for missing namespace", func() {
+			By("Starting and initializing MCP server")
+			var err error
+			mcpServer, err = StartMCPServer()
+			Expect(err).NotTo(HaveOccurred())
+
+			req := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "tools/call",
+				Params: map[string]interface{}{
+					"name":      "get_vm_disks",
+					"arguments": map[string]interface{}{"name": testVM.Name}, // missing namespace
+				},
+				ID: 3,
+			}
+
+			resp, err := mcpServer.SendRequest(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.Error).NotTo(BeNil())
+			Expect(resp.Error.(map[string]interface{})["message"]).To(ContainSubstring("namespace parameter required"))
+		})
+
+		It("should return error for missing name", func() {
+			By("Starting and initializing MCP server")
+			var err error
+			mcpServer, err = StartMCPServer()
+			Expect(err).NotTo(HaveOccurred())
+
+			req := MCPRequest{
+				JSONRPC: "2.0",
+				Method:  "tools/call",
+				Params: map[string]interface{}{
+					"name":      "get_vm_disks",
+					"arguments": map[string]interface{}{"namespace": testNamespace}, // missing name
+				},
+				ID: 4,
+			}
+
+			resp, err := mcpServer.SendRequest(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.Error).NotTo(BeNil())
+			Expect(resp.Error.(map[string]interface{})["message"]).To(ContainSubstring("name parameter required"))
+		})
+	})
+
 	Context("MCP Resources", func() {
 		var testVM *kubevirtv1.VirtualMachine
 

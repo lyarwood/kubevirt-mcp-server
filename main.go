@@ -282,6 +282,22 @@ func main() {
 		vm.Unpause,
 	)
 
+	s.AddTool(
+		mcp.NewTool(
+			"get_vm_disks",
+			mcp.WithDescription("get the list of disks for a specified virtual machine in the given namespace"),
+			mcp.WithString(
+				"namespace",
+				mcp.Description("The namespace of the virtual machine"),
+				mcp.Required()),
+			mcp.WithString(
+				"name",
+				mcp.Description("The name of the virtual machine"),
+				mcp.Required()),
+		),
+		vm.Disks,
+	)
+
 	// Add MCP Resource Templates
 	s.AddResourceTemplate(
 		mcp.NewResourceTemplate(

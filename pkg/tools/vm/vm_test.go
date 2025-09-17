@@ -750,4 +750,52 @@ var _ = Describe("VM", func() {
 			})
 		})
 	})
+
+	Describe("Disks", func() {
+		Context("when given invalid arguments", func() {
+			It("should return an error for missing namespace", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"name": "test-vm",
+				}
+
+				result, err := vm.Disks(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("namespace parameter required"))
+			})
+
+			It("should return an error for missing name", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-ns",
+				}
+
+				result, err := vm.Disks(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				Expect(result.Content[0].(mcp.TextContent).Text).To(ContainSubstring("name parameter required"))
+			})
+		})
+
+		Context("when given valid arguments", func() {
+			It("should accept valid namespace and name parameters", func() {
+				request := mcp.CallToolRequest{}
+				request.Params.Arguments = map[string]interface{}{
+					"namespace": "test-namespace",
+					"name":      "test-vm",
+				}
+
+				// This will fail due to no KubeVirt cluster, but we're testing the argument parsing
+				result, err := vm.Disks(ctx, request)
+
+				Expect(err).To(HaveOccurred())
+				Expect(result.IsError).To(BeTrue())
+				// Should not contain argument parsing errors
+				Expect(result.Content[0].(mcp.TextContent).Text).NotTo(ContainSubstring("parameter required"))
+			})
+		})
+	})
 })
