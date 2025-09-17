@@ -21,9 +21,23 @@ The project is organized into modular packages:
 - `start_vm` - Start a virtual machine
 - `stop_vm` - Stop a virtual machine
 - `restart_vm` - Restart a virtual machine (handles both running and stopped VMs)
+- `pause_vm` - Pause a virtual machine
+- `unpause_vm` - Unpause a virtual machine
 - `create_vm` - Create a virtual machine with specified container disk (supports OS name lookup), optional instancetype and preference
+- `delete_vm` - Delete a virtual machine
+- `patch_vm` - Apply JSON merge patch to modify VM configuration
 - `list_instancetypes` - List available instance types
+- `get_instancetype` - Get detailed information about a specific instance type
+- `get_preference` - Get detailed information about a specific preference
 - `get_vm_instancetype` - Get instance type for a VM
+- `get_vm_status` - Get comprehensive VM status information
+- `get_vm_conditions` - Get detailed VM condition information
+- `get_vm_phase` - Get current VM phase and basic status
+
+### MCP Prompts
+- `describe_vm` - Provide comprehensive VM description including configuration, status, and operational details
+- `troubleshoot_vm` - Diagnose and analyze potential VM issues with actionable recommendations
+- `health_check_vm` - Perform quick VM health check and report issues
 
 ### MCP Resources
 - `kubevirt://{namespace}/vms` - JSON list of VMs with summary info
@@ -293,11 +307,27 @@ The MCP server provides Claude with these tools:
 - `start_vm` - Start a specific VM
 - `stop_vm` - Stop a specific VM
 - `restart_vm` - Restart a VM
+- `pause_vm` - Pause a VM
+- `unpause_vm` - Unpause a VM
 - `create_vm` - Create a new VM with container disk (supports OS names like "fedora", "ubuntu") and optional instancetype/preference
+- `delete_vm` - Delete a VM
+- `patch_vm` - Apply JSON merge patch to modify VM configuration
 
-**Instance Types:**
-- `list_instancetypes` - List available instance types
+**VM Information:**
+- `get_vm_status` - Get comprehensive VM status information
+- `get_vm_conditions` - Get detailed VM condition information
+- `get_vm_phase` - Get current VM phase and basic status
 - `get_vm_instancetype` - Get VM's assigned instance type
+
+**Instance Types & Preferences:**
+- `list_instancetypes` - List available instance types
+- `get_instancetype` - Get detailed information about a specific instance type
+- `get_preference` - Get detailed information about a specific preference
+
+**Prompts:**
+- `describe_vm` - Comprehensive VM description and analysis
+- `troubleshoot_vm` - VM troubleshooting and diagnostics
+- `health_check_vm` - Quick VM health checks
 
 **Container Disk Lookup:**
 The `create_vm` tool supports both full container image URLs and OS name shortcuts:
