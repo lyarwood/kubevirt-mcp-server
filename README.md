@@ -33,6 +33,7 @@ The project is organized into modular packages:
 - `get_vm_status` - Get comprehensive VM status information
 - `get_vm_conditions` - Get detailed VM condition information
 - `get_vm_phase` - Get current VM phase and basic status
+- `get_vm_disks` - Retrieve the list of disks attached to a virtual machine
 
 ### MCP Prompts
 - `describe_vm` - Provide comprehensive VM description including configuration, status, and operational details
@@ -149,7 +150,7 @@ The project includes comprehensive test coverage:
   - `tests/functional/functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
   - `tests/functional/mcp_server_stdio_test.go` - Complete MCP server API coverage:
     - MCP server initialization and JSON-RPC communication
-    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, create_vm, list_instancetypes, get_vm_instancetype
+    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, create_vm, list_instancetypes, get_vm_instancetype, get_vm_disks
     - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
     - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
@@ -318,6 +319,7 @@ The MCP server provides Claude with these tools:
 - `get_vm_conditions` - Get detailed VM condition information
 - `get_vm_phase` - Get current VM phase and basic status
 - `get_vm_instancetype` - Get VM's assigned instance type
+- `get_vm_disks` - Retrieve the list of disks attached to a virtual machine
 
 **Instance Types & Preferences:**
 - `list_instancetypes` - List available instance types

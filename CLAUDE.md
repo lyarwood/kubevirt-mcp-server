@@ -33,6 +33,7 @@ This is a simple MCP server implementation for the KubeVirt project, a virtualiz
 - `get_vm_status` - Get comprehensive VM status information
 - `get_vm_conditions` - Get detailed VM condition information
 - `get_vm_phase` - Get current VM phase and basic status
+- `get_vm_disks` - Retrieve the list of disks attached to a virtual machine
 
 #### Container Disk Lookup
 The `create_vm` tool supports both full container image URLs and OS name shortcuts:
@@ -154,7 +155,7 @@ The kubevirtci integration includes:
   - `functional_suite_test.go` - Test suite setup and KubeVirt cluster verification
   - `mcp_server_stdio_test.go` - Comprehensive functional tests for all MCP server functionality including:
     - MCP server initialization and tool listing
-    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, list_instancetypes, get_vm_instancetype
+    - All MCP tools: list_vms, start_vm, stop_vm, restart_vm, list_instancetypes, get_vm_instancetype, get_vm_disks
     - All MCP resources: kubevirt://namespace/vms, vm/name, vmis, vmi/name endpoints
     - Error handling for invalid tools, missing arguments, invalid URIs, and non-existent VMs
 
