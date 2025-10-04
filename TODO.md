@@ -157,7 +157,7 @@ When working on items from this TODO list:
 1. Create a feature branch following the naming convention: `feat/todo-item-name`
 2. Update relevant tests and documentation
 3. Follow the Conventional Commits standard for commit messages
-4. Update both CLAUDE.md and README.md if the changes affect project structure or usage
+4. Update both AGENTS.md and README.md if the changes affect project structure or usage
 5. Include `Assisted-By: Claude <noreply@anthropic.com>` in commits when AI assistance is used
 
 ## Priority Guidelines
