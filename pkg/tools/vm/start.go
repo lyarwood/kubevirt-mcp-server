@@ -5,39 +5,38 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func Start(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type StartInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type StartOutput struct {
+	Result string `json:"result"`
+}
+
+func Start(ctx context.Context, req *mcp.CallToolRequest, input StartInput) (*mcp.CallToolResult, *StartOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
-	}
-
-	// Use JSON patch to update RunStrategy to avoid conflicts
 	patchData := []byte(`[{"op": "replace", "path": "/spec/runStrategy", "value": "Always"}]`)
-	_, err = virtClient.VirtualMachine(namespace).Patch(ctx, name, types.JSONPatchType, patchData, metav1.PatchOptions{})
+	_, err = virtClient.VirtualMachine(input.Namespace).Patch(ctx, input.Name, types.JSONPatchType, patchData, metav1.PatchOptions{})
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: fmt.Sprintf("started %s", name),
-			},
-		},
-	}, nil
+	return nil, &StartOutput{Result: fmt.Sprintf("started %s", input.Name)}, nil
 }

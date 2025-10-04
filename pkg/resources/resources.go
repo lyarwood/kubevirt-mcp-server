@@ -4,20 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 	"strings"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func VmsList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace from URI: kubevirt://{namespace}/vms
-	parts := strings.Split(request.Params.URI, "/")
+func VmsList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vms")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -51,23 +53,30 @@ func VmsList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Resour
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}
-	parts := strings.Split(request.Params.URI, "/")
+func VmGet(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 5 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -84,22 +93,26 @@ func VmGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Resource
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmisList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace from URI: kubevirt://{namespace}/vmis
-	parts := strings.Split(request.Params.URI, "/")
+func VmisList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmis")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -144,23 +157,30 @@ func VmisList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Resou
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmiGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}
-	parts := strings.Split(request.Params.URI, "/")
+func VmiGet(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 5 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -177,29 +197,32 @@ func VmiGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Resourc
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace from URI: kubevirt://{namespace}/datavolumes
-	parts := strings.Split(request.Params.URI, "/")
+func DataVolumesList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/datavolumes")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the underlying clientset to access CDI resources
 	clientset := virtClient.CdiClient()
 	dataVolumes, err := clientset.CdiV1beta1().DataVolumes(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
@@ -215,7 +238,6 @@ func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 			"created":   dv.CreationTimestamp,
 		}
 
-		// Add source information if available
 		if dv.Spec.Source != nil {
 			source := map[string]interface{}{}
 			if dv.Spec.Source.HTTP != nil {
@@ -241,7 +263,6 @@ func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 			}
 		}
 
-		// Add storage information
 		if dv.Spec.Storage != nil {
 			storage := map[string]interface{}{}
 			if dv.Spec.Storage.Resources.Requests != nil {
@@ -257,7 +278,6 @@ func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 			}
 		}
 
-		// Add progress information if available
 		if dv.Status.Progress != "" {
 			dvInfo["progress"] = dv.Status.Progress
 		}
@@ -270,30 +290,36 @@ func DataVolumesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func DataVolumeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/datavolume/{name}
-	parts := strings.Split(request.Params.URI, "/")
+func DataVolumeGet(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 5 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/datavolume/{name}")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the underlying clientset to access CDI resources
 	clientset := virtClient.CdiClient()
 	dataVolume, err := clientset.CdiV1beta1().DataVolumes(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -305,23 +331,30 @@ func DataVolumeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}/status
-	parts := strings.Split(request.Params.URI, "/")
+func VmGetStatus(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 6 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}/status")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -333,7 +366,6 @@ func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Re
 		return nil, err
 	}
 
-	// Create a focused status response
 	statusInfo := map[string]interface{}{
 		"name":      vm.Name,
 		"namespace": vm.Namespace,
@@ -347,22 +379,20 @@ func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Re
 		statusInfo["runStrategy"] = string(*vm.Spec.RunStrategy)
 	}
 
-	// Add state change requests if available
 	if len(vm.Status.StateChangeRequests) > 0 {
 		requests := make([]map[string]interface{}, 0, len(vm.Status.StateChangeRequests))
-		for _, req := range vm.Status.StateChangeRequests {
+		for _, r := range vm.Status.StateChangeRequests {
 			request := map[string]interface{}{
-				"action": req.Action,
+				"action": r.Action,
 			}
-			if req.UID != nil {
-				request["uid"] = *req.UID
+			if r.UID != nil {
+				request["uid"] = *r.UID
 			}
 			requests = append(requests, request)
 		}
 		statusInfo["stateChangeRequests"] = requests
 	}
 
-	// Add conditions if available
 	if len(vm.Status.Conditions) > 0 {
 		conditions := make([]map[string]interface{}, 0, len(vm.Status.Conditions))
 		for _, cond := range vm.Status.Conditions {
@@ -389,23 +419,30 @@ func VmGetStatus(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.Re
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmiGetGuestOSInfo(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/guestosinfo
-	parts := strings.Split(request.Params.URI, "/")
+func VmiGetGuestOSInfo(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 6 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/guestosinfo")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -422,23 +459,30 @@ func VmiGetGuestOSInfo(ctx context.Context, request mcp.ReadResourceRequest) ([]
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmiGetFilesystems(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/filesystems
-	parts := strings.Split(request.Params.URI, "/")
+func VmiGetFilesystems(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 6 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/filesystems")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -455,23 +499,30 @@ func VmiGetFilesystems(ctx context.Context, request mcp.ReadResourceRequest) ([]
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmiGetUserList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vmi/{name}/userlist
-	parts := strings.Split(request.Params.URI, "/")
+func VmiGetUserList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 6 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vmi/{name}/userlist")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -488,36 +539,41 @@ func VmiGetUserList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace and name from URI: kubevirt://{namespace}/vm/{name}/console
-	parts := strings.Split(request.Params.URI, "/")
+func VmGetConsole(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 6 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/vm/{name}/console")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
 		return nil, err
 	}
 
-	// Get the VMI to check console info
 	vmi, err := virtClient.VirtualMachineInstance(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	// Create console connection info
 	consoleInfo := map[string]interface{}{
 		"name":      vmi.Name,
 		"namespace": vmi.Namespace,
@@ -525,13 +581,9 @@ func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.R
 		"nodeName":  vmi.Status.NodeName,
 	}
 
-	// Add available console types
 	consoles := []string{}
 	if vmi.Status.Phase == "Running" {
-		// These are the typical console types available in KubeVirt
 		consoles = append(consoles, "vnc", "serial")
-
-		// Check if guest agent is available
 		for _, condition := range vmi.Status.Conditions {
 			if condition.Type == "AgentConnected" && condition.Status == "True" {
 				consoles = append(consoles, "guest-agent")
@@ -541,7 +593,6 @@ func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.R
 	}
 	consoleInfo["availableConsoles"] = consoles
 
-	// Add connection details
 	if len(consoles) > 0 {
 		connectionInfo := map[string]interface{}{
 			"note": "Use kubectl or virtctl to connect to consoles",
@@ -558,22 +609,26 @@ func VmGetConsole(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.R
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func InstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace from URI: kubevirt://{namespace}/instancetypes
-	parts := strings.Split(request.Params.URI, "/")
+func InstancetypesList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/instancetypes")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -592,15 +647,12 @@ func InstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]
 			"namespace": it.Namespace,
 			"created":   it.CreationTimestamp,
 		}
-
-		// Add CPU and memory info if available
 		if it.Spec.CPU.Guest != 0 {
 			itInfo["cpu"] = it.Spec.CPU.Guest
 		}
 		if !it.Spec.Memory.Guest.IsZero() {
 			itInfo["memory"] = it.Spec.Memory.Guest.String()
 		}
-
 		instancetypeList = append(instancetypeList, itInfo)
 	}
 
@@ -609,22 +661,26 @@ func InstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func PreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse namespace from URI: kubevirt://{namespace}/preferences
-	parts := strings.Split(request.Params.URI, "/")
+func PreferencesList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://{namespace}/preferences")
 	}
 	namespace := parts[2]
+	if namespace == "" {
+		return nil, fmt.Errorf("resource namespace may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -643,12 +699,9 @@ func PreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 			"namespace": pref.Namespace,
 			"created":   pref.CreationTimestamp,
 		}
-
-		// Add preference details if available
 		if pref.Spec.Machine != nil {
 			prefInfo["hasMachinePreferences"] = true
 		}
-
 		preferenceList = append(preferenceList, prefInfo)
 	}
 
@@ -657,18 +710,19 @@ func PreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mc
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func ClusterInstancetypesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse URI: kubevirt://cluster/instancetypes
-	parts := strings.Split(request.Params.URI, "/")
+func ClusterInstancetypesList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 || parts[2] != "cluster" {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/instancetypes")
 	}
@@ -689,15 +743,12 @@ func ClusterInstancetypesList(ctx context.Context, request mcp.ReadResourceReque
 			"name":    it.Name,
 			"created": it.CreationTimestamp,
 		}
-
-		// Add CPU and memory info if available
 		if it.Spec.CPU.Guest != 0 {
 			itInfo["cpu"] = it.Spec.CPU.Guest
 		}
 		if !it.Spec.Memory.Guest.IsZero() {
 			itInfo["memory"] = it.Spec.Memory.Guest.String()
 		}
-
 		instancetypeList = append(instancetypeList, itInfo)
 	}
 
@@ -706,18 +757,19 @@ func ClusterInstancetypesList(ctx context.Context, request mcp.ReadResourceReque
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func ClusterPreferencesList(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse URI: kubevirt://cluster/preferences
-	parts := strings.Split(request.Params.URI, "/")
+func ClusterPreferencesList(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 3 || parts[2] != "cluster" {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/preferences")
 	}
@@ -738,12 +790,9 @@ func ClusterPreferencesList(ctx context.Context, request mcp.ReadResourceRequest
 			"name":    pref.Name,
 			"created": pref.CreationTimestamp,
 		}
-
-		// Add preference details if available
 		if pref.Spec.Machine != nil {
 			prefInfo["hasMachinePreferences"] = true
 		}
-
 		preferenceList = append(preferenceList, prefInfo)
 	}
 
@@ -752,22 +801,26 @@ func ClusterPreferencesList(ctx context.Context, request mcp.ReadResourceRequest
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func ClusterInstancetypeGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse name from URI: kubevirt://cluster/instancetype/{name}
-	parts := strings.Split(request.Params.URI, "/")
+func ClusterInstancetypeGet(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 5 || parts[2] != "cluster" {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/instancetype/{name}")
 	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -784,22 +837,26 @@ func ClusterInstancetypeGet(ctx context.Context, request mcp.ReadResourceRequest
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }
 
-func ClusterPreferenceGet(ctx context.Context, request mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-	// Parse name from URI: kubevirt://cluster/preference/{name}
-	parts := strings.Split(request.Params.URI, "/")
+func ClusterPreferenceGet(ctx context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	parts := strings.Split(req.Params.URI, "/")
 	if len(parts) < 5 || parts[2] != "cluster" {
 		return nil, fmt.Errorf("invalid URI format, expected kubevirt://cluster/preference/{name}")
 	}
 	name := parts[4]
+	if name == "" {
+		return nil, fmt.Errorf("resource name may not be empty")
+	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
@@ -816,11 +873,13 @@ func ClusterPreferenceGet(ctx context.Context, request mcp.ReadResourceRequest) 
 		return nil, err
 	}
 
-	return []mcp.ResourceContents{
-		&mcp.TextResourceContents{
-			URI:      request.Params.URI,
-			MIMEType: "application/json",
-			Text:     string(jsonData),
+	return &mcp.ReadResourceResult{
+		Contents: []*mcp.ResourceContents{
+			{
+				URI:      req.Params.URI,
+				MIMEType: "application/json",
+				Text:     string(jsonData),
+			},
 		},
 	}, nil
 }

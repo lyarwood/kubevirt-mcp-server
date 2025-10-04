@@ -4,38 +4,33 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func newToolResultErr(err error) (*mcp.CallToolResult, error) {
-	return &mcp.CallToolResult{
-		IsError: true,
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: err.Error(),
-			},
-		},
-	}, err
+type GetInput struct {
+	Name string `json:"name"`
 }
 
-func Get(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter is required: %w", err))
+type GetOutput struct {
+	Result string `json:"result"`
+}
+
+func Get(ctx context.Context, req *mcp.CallToolRequest, input GetInput) (*mcp.CallToolResult, *GetOutput, error) {
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
 	}
 
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	preference, err := virtClient.VirtualMachineClusterPreference().Get(ctx, name, metav1.GetOptions{})
+	preference, err := virtClient.VirtualMachineClusterPreference().Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
 	result := map[string]interface{}{
@@ -47,15 +42,8 @@ func Get(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult,
 
 	resultJSON, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: string(resultJSON),
-			},
-		},
-	}, nil
+	return nil, &GetOutput{Result: string(resultJSON)}, nil
 }

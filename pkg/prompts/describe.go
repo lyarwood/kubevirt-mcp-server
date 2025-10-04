@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func DescribeVM(ctx context.Context, request mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+func DescribeVM(ctx context.Context, request *mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
 	namespace, ok := request.Params.Arguments["namespace"]
 	if !ok || namespace == "" {
 		return nil, fmt.Errorf("namespace parameter is required")
@@ -49,12 +49,17 @@ Please use the available MCP tools (get_vm_status, get_vm_conditions, get_vm_pha
 
 Focus on providing actionable insights about the VM's current state, configuration optimizations, and operational readiness.`, name, namespace)
 
-	messages := []mcp.PromptMessage{
-		mcp.NewPromptMessage(mcp.RoleUser, mcp.TextContent{
-			Type: "text",
-			Text: prompt,
-		}),
+	messages := []*mcp.PromptMessage{
+		{
+			Role: "user",
+			Content: &mcp.TextContent{
+				Text: prompt,
+			},
+		},
 	}
 
-	return mcp.NewGetPromptResult(description, messages), nil
+	return &mcp.GetPromptResult{
+		Description: description,
+		Messages:    messages,
+	}, nil
 }

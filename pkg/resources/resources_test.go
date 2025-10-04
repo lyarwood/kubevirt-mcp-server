@@ -3,11 +3,10 @@ package resources_test
 import (
 	"context"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/lyarwood/kubevirt-mcp-server/pkg/resources"
 )
 
 var _ = Describe("Resources", func() {
@@ -19,526 +18,56 @@ var _ = Describe("Resources", func() {
 		ctx = context.Background()
 	})
 
-	Describe("VmsList", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.VmsList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI with missing namespace", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt:/vms",
-					},
-				}
-
-				result, err := resources.VmsList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vms",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.VmsList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to list VMs", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vms",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.VmsList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing namespace"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("VmGet", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.VmGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI missing VM name", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-ns/vm",
-					},
-				}
-
-				result, err := resources.VmGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace and name correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vm/test-vm",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.VmGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to get VM", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vm/test-vm",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.VmGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("VmisList", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.VmisList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vmis",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.VmisList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to list VMIs", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vmis",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.VmisList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing namespace"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("VmiGet", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.VmiGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI missing VMI name", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-ns/vmi",
-					},
-				}
-
-				result, err := resources.VmiGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace and name correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vmi/test-vmi",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.VmiGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to get VMI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vmi/test-vmi",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.VmiGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("DataVolumesList", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.DataVolumesList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI with missing namespace", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt:/datavolumes",
-					},
-				}
-
-				result, err := resources.DataVolumesList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/datavolumes",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.DataVolumesList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to list DataVolumes", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/datavolumes",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.DataVolumesList(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing namespace"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("DataVolumeGet", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.DataVolumeGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI missing DataVolume name", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/datavolume",
-					},
-				}
-
-				result, err := resources.DataVolumeGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should parse namespace and name correctly", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/datavolume/test-dv",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing URI parsing
-				result, err := resources.DataVolumeGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to get DataVolume", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/datavolume/test-dv",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.DataVolumeGet(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
-
-	Describe("VmGetStatus", func() {
-		Context("when given invalid URI", func() {
-			It("should return an error for malformed URI", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "invalid-uri",
-					},
-				}
-
-				result, err := resources.VmGetStatus(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("invalid URI format"))
-				Expect(result).To(BeNil())
-			})
-
-			It("should return an error for URI missing VM name", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vm//status",
-					},
-				}
-
-				result, err := resources.VmGetStatus(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(result).To(BeNil())
-				// Should not contain URI parsing errors
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-			})
-		})
-
-		Context("when given valid URI format", func() {
-			It("should accept valid kubevirt URI and attempt to get VM status", func() {
-				request := mcp.ReadResourceRequest{
-					Params: struct {
-						URI       string                 `json:"uri"`
-						Arguments map[string]interface{} `json:"arguments,omitempty"`
-					}{
-						URI: "kubevirt://test-namespace/vm/test-vm/status",
-					},
-				}
-
-				// This will fail due to no KubeVirt cluster, but we're testing the URI parsing
-				result, err := resources.VmGetStatus(ctx, request)
-
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
-				Expect(err.Error()).NotTo(ContainSubstring("missing"))
-				Expect(result).To(BeNil())
-			})
-		})
-	})
+	type resourceFunc func(context.Context, *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error)
+
+	DescribeTable("invalid URI handling",
+		func(handler resourceFunc, uri string, expectedError string) {
+			request := &mcp.ReadResourceRequest{
+				Params: &mcp.ReadResourceParams{
+					URI: uri,
+				},
+			}
+			result, err := handler(ctx, request)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring(expectedError))
+			Expect(result).To(BeNil())
+		},
+		Entry("VmsList should fail with malformed URI", resources.VmsList, "invalid-uri", "invalid URI format"),
+		Entry("VmsList should fail with missing namespace", resources.VmsList, "kubevirt:////vms", "resource namespace may not be empty"),
+		Entry("VmGet should fail with malformed URI", resources.VmGet, "invalid-uri", "invalid URI format"),
+		Entry("VmGet should fail with missing name", resources.VmGet, "kubevirt://test-ns/vm/", "resource name may not be empty"),
+		Entry("VmisList should fail with malformed URI", resources.VmisList, "invalid-uri", "invalid URI format"),
+		Entry("VmisList should fail with missing namespace", resources.VmisList, "kubevirt:////vmis", "resource namespace may not be empty"),
+		Entry("VmiGet should fail with malformed URI", resources.VmiGet, "invalid-uri", "invalid URI format"),
+		Entry("VmiGet should fail with missing name", resources.VmiGet, "kubevirt://test-ns/vmi/", "resource name may not be empty"),
+		Entry("DataVolumesList should fail with malformed URI", resources.DataVolumesList, "invalid-uri", "invalid URI format"),
+		Entry("DataVolumesList should fail with missing namespace", resources.DataVolumesList, "kubevirt:////datavolumes", "resource namespace may not be empty"),
+		Entry("DataVolumeGet should fail with malformed URI", resources.DataVolumeGet, "invalid-uri", "invalid URI format"),
+		Entry("DataVolumeGet should fail with missing name", resources.DataVolumeGet, "kubevirt://test-ns/datavolume/", "resource name may not be empty"),
+		Entry("VmGetStatus should fail with malformed URI", resources.VmGetStatus, "invalid-uri", "invalid URI format"),
+		Entry("VmGetStatus should fail with missing name", resources.VmGetStatus, "kubevirt://test-ns/vm//status", "resource name may not be empty"),
+	)
+
+	DescribeTable("valid URI parsing",
+		func(handler resourceFunc, uri string) {
+			request := &mcp.ReadResourceRequest{
+				Params: &mcp.ReadResourceParams{
+					URI: uri,
+				},
+			}
+			// This will fail due to no KubeVirt cluster, but we're testing URI parsing
+			_, err := handler(ctx, request)
+			Expect(err).To(HaveOccurred())
+			// Should not contain URI parsing errors
+			Expect(err.Error()).NotTo(ContainSubstring("invalid URI format"))
+			Expect(err.Error()).NotTo(ContainSubstring("may not be empty"))
+		},
+		Entry("VmsList should parse namespace", resources.VmsList, "kubevirt://test-namespace/vms"),
+		Entry("VmGet should parse namespace and name", resources.VmGet, "kubevirt://test-namespace/vm/test-vm"),
+		Entry("VmisList should parse namespace", resources.VmisList, "kubevirt://test-namespace/vmis"),
+		Entry("VmiGet should parse namespace and name", resources.VmiGet, "kubevirt://test-namespace/vmi/test-vmi"),
+		Entry("DataVolumesList should parse namespace", resources.DataVolumesList, "kubevirt://test-namespace/datavolumes"),
+		Entry("DataVolumeGet should parse namespace and name", resources.DataVolumeGet, "kubevirt://test-namespace/datavolume/test-dv"),
+		Entry("VmGetStatus should parse namespace and name", resources.VmGetStatus, "kubevirt://test-namespace/vm/test-vm/status"),
+	)
 })

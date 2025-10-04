@@ -6,46 +6,53 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func Patch(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	virtClient, err := client.GetKubevirtClient()
-	if err != nil {
-		return newToolResultErr(err)
+type PatchInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+	Patch     string `json:"patch"`
+}
+
+type PatchOutput struct {
+	Result string `json:"result"`
+}
+
+func Patch(ctx context.Context, req *mcp.CallToolRequest, input PatchInput) (*mcp.CallToolResult, *PatchOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+	if input.Patch == "" {
+		return nil, nil, fmt.Errorf("patch parameter is required")
 	}
 
-	namespace, err := request.RequireString("namespace")
+	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
-	}
-	patchData, err := request.RequireString("patch")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("patch parameter required: %w", err))
+		return nil, nil, err
 	}
 
 	// Validate that patch is valid JSON
 	var patchJSON interface{}
-	if err := json.Unmarshal([]byte(patchData), &patchJSON); err != nil {
-		return newToolResultErr(fmt.Errorf("invalid JSON in patch parameter: %w", err))
+	if err := json.Unmarshal([]byte(input.Patch), &patchJSON); err != nil {
+		return nil, nil, fmt.Errorf("invalid JSON in patch parameter: %w", err)
 	}
 
 	// Get the current VM to validate it exists
-	currentVM, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
+	currentVM, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("failed to get VM %s/%s: %w", namespace, name, err))
+		return nil, nil, fmt.Errorf("failed to get VM %s/%s: %w", input.Namespace, input.Name, err)
 	}
 
 	// Apply the patch
-	patchedVM, err := virtClient.VirtualMachine(namespace).Patch(ctx, name, types.MergePatchType, []byte(patchData), metav1.PatchOptions{})
+	patchedVM, err := virtClient.VirtualMachine(input.Namespace).Patch(ctx, input.Name, types.MergePatchType, []byte(input.Patch), metav1.PatchOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("failed to patch VM %s/%s: %w", namespace, name, err))
+		return nil, nil, fmt.Errorf("failed to patch VM %s/%s: %w", input.Namespace, input.Name, err)
 	}
 
 	// Create success response with information about what was changed
@@ -65,15 +72,8 @@ func Patch(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResul
 
 	resultJSON, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: string(resultJSON),
-			},
-		},
-	}, nil
+	return nil, &PatchOutput{Result: string(resultJSON)}, nil
 }
