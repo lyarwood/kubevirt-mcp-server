@@ -66,12 +66,12 @@ func GetStatus(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 
 	// Create a comprehensive status response
 	statusInfo := map[string]interface{}{
-		"name":             vm.Name,
-		"namespace":        vm.Namespace,
-		"status":           vm.Status.PrintableStatus,
-		"ready":            vm.Status.Ready,
-		"created":          vm.CreationTimestamp,
-		"desiredGeneration": vm.Status.DesiredGeneration,
+		"name":               vm.Name,
+		"namespace":          vm.Namespace,
+		"status":             vm.Status.PrintableStatus,
+		"ready":              vm.Status.Ready,
+		"created":            vm.CreationTimestamp,
+		"desiredGeneration":  vm.Status.DesiredGeneration,
 		"observedGeneration": vm.Status.ObservedGeneration,
 	}
 
@@ -131,8 +131,8 @@ func GetConditions(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 
 	// Create conditions response
 	conditionsInfo := map[string]interface{}{
-		"name":      vm.Name,
-		"namespace": vm.Namespace,
+		"name":       vm.Name,
+		"namespace":  vm.Namespace,
 		"conditions": []map[string]interface{}{},
 	}
 

@@ -51,7 +51,7 @@ vet:
 # Run linter
 lint:
 	@echo "Running golangci-lint..."
-	golangci-lint run
+	golangci-lint run --timeout=5m
 
 # Download dependencies
 deps:

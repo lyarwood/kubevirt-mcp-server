@@ -18,7 +18,7 @@ func TroubleshootVM(ctx context.Context, request mcp.GetPromptRequest) (*mcp.Get
 	}
 
 	// Optional issue description parameter
-	issueDescription, _ := request.Params.Arguments["issue_description"]
+	issueDescription := request.Params.Arguments["issue_description"]
 
 	description := fmt.Sprintf("Comprehensive troubleshooting analysis for virtual machine %s in namespace %s", name, namespace)
 
