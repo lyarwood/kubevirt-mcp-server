@@ -6,72 +6,78 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func GetInstancetype(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type GetInstancetypeInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type GetInstancetypeOutput struct {
+	Message string `json:"message"`
+}
+
+func GetInstancetype(ctx context.Context, req *mcp.CallToolRequest, input GetInstancetypeInput) (*mcp.CallToolResult, *GetInstancetypeOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	vm, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
-	}
-
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
 	message := "no instance type referenced by virtual machine"
 	if vm.Spec.Instancetype != nil {
 		message = vm.Spec.Instancetype.Name
 	}
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: message,
-			},
-		},
-	}, nil
+	return nil, &GetInstancetypeOutput{Message: message}, nil
 }
 
-func GetStatus(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type GetStatusInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type GetStatusOutput struct {
+	Result string `json:"result"`
+}
+
+func GetStatus(ctx context.Context, req *mcp.CallToolRequest, input GetStatusInput) (*mcp.CallToolResult, *GetStatusOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	vm, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
+		return nil, nil, err
 	}
 
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	// Create a comprehensive status response
 	statusInfo := map[string]interface{}{
-		"name":             vm.Name,
-		"namespace":        vm.Namespace,
-		"status":           vm.Status.PrintableStatus,
-		"ready":            vm.Status.Ready,
-		"created":          vm.CreationTimestamp,
-		"desiredGeneration": vm.Status.DesiredGeneration,
+		"name":               vm.Name,
+		"namespace":          vm.Namespace,
+		"status":             vm.Status.PrintableStatus,
+		"ready":              vm.Status.Ready,
+		"created":            vm.CreationTimestamp,
+		"desiredGeneration":  vm.Status.DesiredGeneration,
 		"observedGeneration": vm.Status.ObservedGeneration,
 	}
 
@@ -79,15 +85,14 @@ func GetStatus(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 		statusInfo["runStrategy"] = string(*vm.Spec.RunStrategy)
 	}
 
-	// Add state change requests if available
 	if len(vm.Status.StateChangeRequests) > 0 {
 		requests := make([]map[string]interface{}, 0, len(vm.Status.StateChangeRequests))
-		for _, req := range vm.Status.StateChangeRequests {
+		for _, r := range vm.Status.StateChangeRequests {
 			request := map[string]interface{}{
-				"action": req.Action,
+				"action": r.Action,
 			}
-			if req.UID != nil {
-				request["uid"] = *req.UID
+			if r.UID != nil {
+				request["uid"] = *r.UID
 			}
 			requests = append(requests, request)
 		}
@@ -96,43 +101,42 @@ func GetStatus(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolR
 
 	resultJSON, err := json.MarshalIndent(statusInfo, "", "  ")
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: string(resultJSON),
-			},
-		},
-	}, nil
+	return nil, &GetStatusOutput{Result: string(resultJSON)}, nil
 }
 
-func GetConditions(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type GetConditionsInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type GetConditionsOutput struct {
+	Result string `json:"result"`
+}
+
+func GetConditions(ctx context.Context, req *mcp.CallToolRequest, input GetConditionsInput) (*mcp.CallToolResult, *GetConditionsOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	vm, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
+		return nil, nil, err
 	}
 
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	// Create conditions response
 	conditionsInfo := map[string]interface{}{
-		"name":      vm.Name,
-		"namespace": vm.Namespace,
+		"name":       vm.Name,
+		"namespace":  vm.Namespace,
 		"conditions": []map[string]interface{}{},
 	}
 
@@ -157,40 +161,39 @@ func GetConditions(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 
 	resultJSON, err := json.MarshalIndent(conditionsInfo, "", "  ")
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: string(resultJSON),
-			},
-		},
-	}, nil
+	return nil, &GetConditionsOutput{Result: string(resultJSON)}, nil
 }
 
-func GetPhase(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type GetPhaseInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type GetPhaseOutput struct {
+	Result string `json:"result"`
+}
+
+func GetPhase(ctx context.Context, req *mcp.CallToolRequest, input GetPhaseInput) (*mcp.CallToolResult, *GetPhaseOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	vm, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
+		return nil, nil, err
 	}
 
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	// Simple phase response
 	phaseInfo := map[string]interface{}{
 		"name":      vm.Name,
 		"namespace": vm.Namespace,
@@ -204,15 +207,8 @@ func GetPhase(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolRe
 
 	resultJSON, err := json.MarshalIndent(phaseInfo, "", "  ")
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: string(resultJSON),
-			},
-		},
-	}, nil
+	return nil, &GetPhaseOutput{Result: string(resultJSON)}, nil
 }

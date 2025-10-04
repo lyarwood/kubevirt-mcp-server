@@ -5,36 +5,38 @@ import (
 	"fmt"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Delete(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type DeleteInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type DeleteOutput struct {
+	Result string `json:"result"`
+}
+
+func Delete(ctx context.Context, req *mcp.CallToolRequest, input DeleteInput) (*mcp.CallToolResult, *DeleteOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	err = virtClient.VirtualMachine(input.Namespace).Delete(ctx, input.Name, metav1.DeleteOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
+		return nil, nil, err
 	}
 
-	err = virtClient.VirtualMachine(namespace).Delete(ctx, name, metav1.DeleteOptions{})
-	if err != nil {
-		return newToolResultErr(err)
-	}
-
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: fmt.Sprintf("deleted VM %s in namespace %s", name, namespace),
-			},
-		},
+	return nil, &DeleteOutput{
+		Result: fmt.Sprintf("deleted VM %s in namespace %s", input.Name, input.Namespace),
 	}, nil
 }

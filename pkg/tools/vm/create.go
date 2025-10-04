@@ -6,39 +6,47 @@ import (
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/tools/containerdisks"
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	virtv1 "kubevirt.io/api/core/v1"
 )
 
-func Create(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type CreateInput struct {
+	Namespace     string `json:"namespace"`
+	Name          string `json:"name"`
+	ContainerDisk string `json:"container_disk"`
+	Instancetype  string `json:"instancetype,omitempty"`
+	Preference    string `json:"preference,omitempty"`
+}
+
+type CreateOutput struct {
+	Result string `json:"result"`
+}
+
+func Create(ctx context.Context, req *mcp.CallToolRequest, input CreateInput) (*mcp.CallToolResult, *CreateOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+	if input.ContainerDisk == "" {
+		return nil, nil, fmt.Errorf("container_disk parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
-	}
-	containerDiskInput, err := request.RequireString("container_disk")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("container_disk parameter required: %w", err))
-	}
-
-	// Resolve the container disk image (handles OS names like "fedora", "ubuntu", etc.)
-	containerDisk := containerdisks.ResolveContainerDisk(containerDiskInput)
+	containerDisk := containerdisks.ResolveContainerDisk(input.ContainerDisk)
 
 	vm := &virtv1.VirtualMachine{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:      input.Name,
+			Namespace: input.Namespace,
 		},
 		Spec: virtv1.VirtualMachineSpec{
 			RunStrategy: &[]virtv1.VirtualMachineRunStrategy{virtv1.RunStrategyHalted}[0],
@@ -73,28 +81,22 @@ func Create(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 		},
 	}
 
-	// Only set memory resources if no instancetype is provided
-	// Instancetypes define their own resource requirements
 	hasInstancetype := false
-
-	instancetype := request.GetString("instancetype", "")
-	if instancetype != "" {
+	if input.Instancetype != "" {
 		vm.Spec.Instancetype = &virtv1.InstancetypeMatcher{
-			Name: instancetype,
+			Name: input.Instancetype,
 			Kind: "VirtualMachineClusterInstancetype",
 		}
 		hasInstancetype = true
 	}
 
-	preference := request.GetString("preference", "")
-	if preference != "" {
+	if input.Preference != "" {
 		vm.Spec.Preference = &virtv1.PreferenceMatcher{
-			Name: preference,
+			Name: input.Preference,
 			Kind: "VirtualMachineClusterPreference",
 		}
 	}
 
-	// Set default memory only if no instancetype is provided
 	if !hasInstancetype {
 		vm.Spec.Template.Spec.Domain.Resources = virtv1.ResourceRequirements{
 			Requests: corev1.ResourceList{
@@ -103,17 +105,12 @@ func Create(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResu
 		}
 	}
 
-	_, err = virtClient.VirtualMachine(namespace).Create(ctx, vm, metav1.CreateOptions{})
+	_, err = virtClient.VirtualMachine(input.Namespace).Create(ctx, vm, metav1.CreateOptions{})
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: fmt.Sprintf("created VM %s in namespace %s", name, namespace),
-			},
-		},
+	return nil, &CreateOutput{
+		Result: fmt.Sprintf("created VM %s in namespace %s", input.Name, input.Namespace),
 	}, nil
 }

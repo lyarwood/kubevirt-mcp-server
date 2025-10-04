@@ -6,29 +6,35 @@ import (
 	"strings"
 
 	"github.com/lyarwood/kubevirt-mcp-server/pkg/client"
-	"github.com/mark3labs/mcp-go/mcp"
-
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func Disks(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+type DisksInput struct {
+	Namespace string `json:"namespace"`
+	Name      string `json:"name"`
+}
+
+type DisksOutput struct {
+	Disks string `json:"disks"`
+}
+
+func Disks(ctx context.Context, req *mcp.CallToolRequest, input DisksInput) (*mcp.CallToolResult, *DisksOutput, error) {
+	if input.Namespace == "" {
+		return nil, nil, fmt.Errorf("namespace parameter is required")
+	}
+	if input.Name == "" {
+		return nil, nil, fmt.Errorf("name parameter is required")
+	}
+
 	virtClient, err := client.GetKubevirtClient()
 	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
-	namespace, err := request.RequireString("namespace")
+	vm, err := virtClient.VirtualMachine(input.Namespace).Get(ctx, input.Name, metav1.GetOptions{})
 	if err != nil {
-		return newToolResultErr(fmt.Errorf("namespace parameter required: %w", err))
-	}
-	name, err := request.RequireString("name")
-	if err != nil {
-		return newToolResultErr(fmt.Errorf("name parameter required: %w", err))
-	}
-
-	vm, err := virtClient.VirtualMachine(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return newToolResultErr(err)
+		return nil, nil, err
 	}
 
 	var diskNames []string
@@ -41,12 +47,5 @@ func Disks(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResul
 		disks = strings.Join(diskNames, ", ")
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			mcp.TextContent{
-				Type: "text",
-				Text: disks,
-			},
-		},
-	}, nil
+	return nil, &DisksOutput{Disks: disks}, nil
 }

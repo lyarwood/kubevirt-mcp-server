@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-func HealthCheckVM(ctx context.Context, request mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
+func HealthCheckVM(ctx context.Context, request *mcp.GetPromptRequest) (*mcp.GetPromptResult, error) {
 	namespace, ok := request.Params.Arguments["namespace"]
 	if !ok || namespace == "" {
 		return nil, fmt.Errorf("namespace parameter is required")
@@ -68,12 +68,17 @@ After checking all indicators, provide a clear status:
 
 Focus on rapid assessment with clear pass/fail indicators and immediate actionable insights. Use the MCP tools efficiently to gather essential health information without extensive analysis.`, name, namespace)
 
-	messages := []mcp.PromptMessage{
-		mcp.NewPromptMessage(mcp.RoleUser, mcp.TextContent{
-			Type: "text",
-			Text: prompt,
-		}),
+	messages := []*mcp.PromptMessage{
+		{
+			Role: "user",
+			Content: &mcp.TextContent{
+				Text: prompt,
+			},
+		},
 	}
 
-	return mcp.NewGetPromptResult(description, messages), nil
+	return &mcp.GetPromptResult{
+		Description: description,
+		Messages:    messages,
+	}, nil
 }
